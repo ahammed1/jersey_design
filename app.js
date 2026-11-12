@@ -22,6 +22,8 @@
   const detailLogoImg = document.getElementById('detailLogoImg');
   const detailMedia = document.getElementById('detailMedia');
   const detailImg = document.getElementById('detailImg');
+  const detailBackMedia = document.getElementById('detailBackMedia');
+  const detailBackImg = document.getElementById('detailBackImg');
   const detailTitle = document.getElementById('detailTitle');
   const detailSubtitle = document.getElementById('detailSubtitle');
   const detailDescription = document.getElementById('detailDescription');
@@ -164,6 +166,9 @@
     detailLogoImg.src = jersey.clips[0].image;
     detailLogoImg.alt = `${jersey.name} crest`;
     detailImg.src = jersey.image;
+    detailBackImg.src = jersey.backImage || '';
+    detailBackImg.alt = `${jersey.name} — back side`;
+    detailBackMedia.hidden = !jersey.backImage;
     detailImg.classList.remove('is-back');
     detailImg.alt = `${jersey.name} — front side`;
     detailTitle.textContent = jersey.name;
