@@ -666,6 +666,13 @@ html, body {
   filter: drop-shadow(0 24px 32px rgba(15, 23, 42, 0.34));
 }
 
+.detail-media img.is-back {
+  width: 380px;
+  height: 380px;
+  max-width: none;
+  object-fit: contain;
+}
+
 .detail-content {
   max-width: 500px;
   position: relative;
@@ -907,6 +914,12 @@ html, body {
     width: 100%;
     height: 240px;
     margin-bottom: 46px;
+  }
+
+  .detail-media img.is-back {
+    width: 240px;
+    height: 240px;
+    max-width: 100%;
   }
 
   .detail-logo-wrap {
