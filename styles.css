@@ -587,38 +587,11 @@ html, body {
   will-change: transform, border-radius;
 }
 
-/* Club Crest Logo in top-right of detail panel */
-.detail-logo-wrap {
-  position: absolute;
-  top: 32px;
-  right: 48px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  z-index: 3;
-}
-
-.detail-logo-wrap img {
-  width: 62px;
-  height: 62px;
-  object-fit: contain;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
-}
-
-.detail-logo-label {
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.9);
-}
-
 /* Hero Jersey Image — extends prominently above the top edge of .detail-panel */
 .detail-media {
   position: absolute;
-  left: -24px;
-  top: -76px;
+  left: -64px;
+  top: -96px;
   width: 345px;
   height: 470px;
   display: flex;
@@ -632,8 +605,8 @@ html, body {
 }
 
 .detail-media img {
-  width: 100%;
-  height: 100%;
+  width: 90%;
+  height: 90%;
   object-fit: contain;
   transform-style: preserve-3d;
   backface-visibility: hidden;
@@ -641,8 +614,8 @@ html, body {
 }
 
 .detail-media img.is-back {
-  width: 155%;
-  height: 155%;
+  width: 150%;
+  height: 150%;
   max-width: none;
   object-fit: contain;
 }
@@ -668,12 +641,13 @@ html, body {
 }
 
 .detail-back-media img {
-  width: 160%;
-  height: 160%;
+  width: 175%;
+  height: 175%;
   max-width: none;
   max-height: none;
   object-fit: contain;
   filter: drop-shadow(0 18px 24px rgba(15, 23, 42, 0.24));
+  transform: translateY(48px);
 }
 
 .detail-title {
@@ -917,15 +891,6 @@ html, body {
     margin: 4px auto 0;
   }
 
-  .detail-logo-wrap {
-    top: 16px;
-    right: 18px;
-  }
-
-  .detail-logo-wrap img {
-    width: 44px;
-    height: 44px;
-  }
 }
 
 @media (max-width: 600px) {

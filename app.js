@@ -17,9 +17,6 @@
   const detailRail = document.querySelector('.detail-rail');
   const detailTopBar = document.querySelector('.detail-top-bar');
   const detailPanel = document.getElementById('detailPanel');
-  const detailLogoWrap = document.getElementById('detailLogoWrap');
-  const detailBadge = document.getElementById('detailBadge');
-  const detailLogoImg = document.getElementById('detailLogoImg');
   const detailMedia = document.getElementById('detailMedia');
   const detailImg = document.getElementById('detailImg');
   const detailBackMedia = document.getElementById('detailBackMedia');
@@ -162,9 +159,6 @@
   function renderDetail(animateSwitch = false) {
     const jersey = JERSEYS[activeIndex];
     detailPanel.style.background = jersey.detailGradient;
-    detailBadge.textContent = '';
-    detailLogoImg.src = jersey.clips[0].image;
-    detailLogoImg.alt = `${jersey.name} crest`;
     detailImg.src = jersey.image;
     detailBackImg.src = jersey.backImage || '';
     detailBackImg.alt = `${jersey.name} — back side`;
