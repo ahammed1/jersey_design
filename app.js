@@ -357,8 +357,8 @@
         (el) => {
           if (!el || !el.animate) return;
           el.animate([{ opacity: 1 }, { opacity: 0 }], {
-            duration: 200,
-            easing: 'ease-out',
+            duration: 160,
+            easing: EASE_OUT_EXPO,
             fill: 'both'
           });
         }
@@ -380,7 +380,7 @@
             { transform: `translate(${idx}px, ${idy}px) scale(${isx}, ${isy})` }
           ],
           {
-            duration: 440,
+            duration: 360,
             easing: EASE_OUT_EXPO,
             fill: 'both'
           }
@@ -400,16 +400,16 @@
           }
         ],
         {
-          duration: 440,
+          duration: 380,
           easing: EASE_OUT_EXPO,
           fill: 'both'
         }
       );
 
       carouselView.animate([{ opacity: 0 }, { opacity: 1 }], {
-        duration: 320,
-        delay: 140,
-        easing: 'ease-out',
+        duration: 260,
+        delay: 80,
+        easing: EASE_OUT_EXPO,
         fill: 'both'
       });
 
