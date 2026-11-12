@@ -168,7 +168,7 @@
     detailImg.src = jersey.image;
     detailBackImg.src = jersey.backImage || '';
     detailBackImg.alt = `${jersey.name} — back side`;
-    detailBackMedia.hidden = !jersey.backImage;
+    detailBackMedia.hidden = jersey.id === 'home' || !jersey.backImage;
     detailImg.classList.remove('is-back');
     detailImg.alt = `${jersey.name} — front side`;
     detailTitle.textContent = jersey.name;
