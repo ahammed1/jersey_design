@@ -531,28 +531,43 @@ html, body {
   color: var(--text-main);
 }
 
-.rail-next {
-  width: 36px;
-  height: 36px;
+.jersey-side-toggle {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
-  border: none;
   background: transparent;
-  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  pointer-events: auto;
+  z-index: 6;
 }
 
-.rail-next:hover {
-  background: var(--pill-bg);
-  color: var(--text-main);
+.jersey-side-toggle span {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 5px rgba(15, 23, 42, 0.3);
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.rail-next svg {
-  width: 18px;
-  height: 18px;
+.jersey-side-toggle:hover span {
+  transform: scale(1.35);
+  background: #ffffff;
+}
+
+.jersey-side-toggle:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .detail-stage {
