@@ -297,76 +297,117 @@
     renderCarousel();
   });
 
-  // Swipe horizontally across the jersey to rotate between front and back.
-  let swipeStartX = 0;
-  let swipeStartY = 0;
-  let swipePointerId = null;
+  // Click and drag across the jersey to rotate it between front and back.
+  let dragPointerId = null;
+  let lastPointerX = 0;
+  let dragRotation = 0;
+  let isDraggingJersey = false;
   let isTurning = false;
 
   detailMedia.addEventListener('pointerdown', (event) => {
     if (!JERSEYS[activeIndex].backImage || isTurning) return;
-    swipePointerId = event.pointerId;
-    swipeStartX = event.clientX;
-    swipeStartY = event.clientY;
+    dragPointerId = event.pointerId;
+    lastPointerX = event.clientX;
+    dragRotation = 0;
+    isDraggingJersey = true;
     detailMedia.setPointerCapture(event.pointerId);
+    detailMedia.classList.add('is-dragging');
+    detailImg.style.transition = 'none';
   });
 
-  detailMedia.addEventListener('pointerup', async (event) => {
-    if (swipePointerId !== event.pointerId) return;
-    swipePointerId = null;
+  detailMedia.addEventListener('pointermove', async (event) => {
+    if (dragPointerId !== event.pointerId || !isDraggingJersey || isTurning) return;
 
-    const deltaX = event.clientX - swipeStartX;
-    const deltaY = event.clientY - swipeStartY;
-    if (Math.abs(deltaX) < 38 || Math.abs(deltaX) < Math.abs(deltaY) * 1.15) return;
+    const movement = event.clientX - lastPointerX;
+    lastPointerX = event.clientX;
+    dragRotation += movement * 0.9;
 
-    const jersey = JERSEYS[activeIndex];
-    if (!jersey.backImage || isTurning) return;
+    if (dragRotation >= 90 || dragRotation <= -90) {
+      const jersey = JERSEYS[activeIndex];
+      const nextShowingBack = !showingBack;
+      const nextImage = nextShowingBack ? jersey.backImage : jersey.image;
+      const preload = new Image();
+      isTurning = true;
 
-    const nextShowingBack = !showingBack;
-    const nextImage = nextShowingBack ? jersey.backImage : jersey.image;
-    const preload = new Image();
-    isTurning = true;
-    detailMedia.classList.add('is-turning');
+      try {
+        await new Promise((resolve, reject) => {
+          preload.onload = resolve;
+          preload.onerror = reject;
+          preload.src = nextImage;
+        });
+        showingBack = nextShowingBack;
+        detailImg.src = nextImage;
+        detailImg.classList.toggle('is-back', showingBack);
+        detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
+        dragRotation = dragRotation > 0 ? -90 : 90;
+      } catch (error) {
+        showToast('Unable to load this jersey image. Check the image file path.');
+        isDraggingJersey = false;
+      } finally {
+        isTurning = false;
+      }
+    }
 
-    try {
-      await new Promise((resolve, reject) => {
-        preload.onload = resolve;
-        preload.onerror = reject;
-        preload.src = nextImage;
-      });
+    const angle = Math.max(-88, Math.min(88, dragRotation));
+    detailImg.style.transform = `perspective(1000px) rotateY(${angle}deg)`;
+  });
 
-      const firstHalf = detailImg.animate(
-        [
-          { transform: 'perspective(1000px) rotateY(0deg) scale(1)', opacity: 1 },
-          { transform: 'perspective(1000px) rotateY(88deg) scale(0.94)', opacity: 0.25 }
-        ],
-        { duration: 310, easing: 'cubic-bezier(0.65, 0, 0.9, 0.4)', fill: 'forwards' }
-      );
-      await firstHalf.finished;
+  function finishJerseyDrag(event) {
+    if (dragPointerId !== event.pointerId) return;
+    dragPointerId = null;
+    isDraggingJersey = false;
+    detailMedia.classList.remove('is-dragging');
 
-      showingBack = nextShowingBack;
-      detailImg.src = nextImage;
-      detailImg.classList.toggle('is-back', showingBack);
-      detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
-
+    const shouldSettleOnBack = Math.abs(dragRotation) > 35;
+    if (shouldSettleOnBack && !showingBack && JERSEYS[activeIndex].backImage) {
+      // A short final turn completes the drag to the reverse side.
+      const jersey = JERSEYS[activeIndex];
+      const preload = new Image();
+      isTurning = true;
+      preload.onload = () => {
+        detailImg.animate(
+          [
+            { transform: detailImg.style.transform || 'rotateY(0deg)', opacity: 1 },
+            { transform: 'perspective(1000px) rotateY(90deg)', opacity: 0.2 }
+          ],
+          { duration: 140, easing: 'ease-in', fill: 'forwards' }
+        ).finished.then(() => {
+          showingBack = true;
+          detailImg.src = jersey.backImage;
+          detailImg.classList.add('is-back');
+          detailImg.alt = `${jersey.name} — back side`;
+          detailImg.animate(
+            [
+              { transform: 'perspective(1000px) rotateY(-90deg)', opacity: 0.2 },
+              { transform: 'perspective(1000px) rotateY(0deg)', opacity: 1 }
+            ],
+            { duration: 220, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'both' }
+          );
+        }).finally(() => {
+          detailImg.style.transform = '';
+          isTurning = false;
+        });
+      };
+      preload.onerror = () => {
+        isTurning = false;
+        detailImg.style.transform = '';
+      };
+      preload.src = jersey.backImage;
+    } else {
       detailImg.animate(
         [
-          { transform: 'perspective(1000px) rotateY(-88deg) scale(0.94)', opacity: 0.25 },
-          { transform: 'perspective(1000px) rotateY(0deg) scale(1)', opacity: 1 }
+          { transform: detailImg.style.transform || 'rotateY(0deg)' },
+          { transform: 'perspective(1000px) rotateY(0deg)' }
         ],
-        { duration: 390, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'both' }
-      );
-    } catch (error) {
-      showToast('Unable to load this jersey image. Check the image file path.');
-    } finally {
-      isTurning = false;
-      detailMedia.classList.remove('is-turning');
+        { duration: 180, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' }
+      ).onfinish = () => {
+        detailImg.style.transform = '';
+      };
     }
-  });
+  }
 
-  detailMedia.addEventListener('pointercancel', () => {
-    swipePointerId = null;
-  });
+  detailMedia.addEventListener('pointerup', finishJerseyDrag);
+  detailMedia.addEventListener('pointercancel', finishJerseyDrag);
 
   closeDetailBtn.addEventListener('click', closeDetail);
   brandBtn.addEventListener('click', () => {
