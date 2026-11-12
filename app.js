@@ -2,6 +2,7 @@
   let activeIndex = 0;
   let searchQuery = '';
   let detailOpen = false;
+  let showingBack = false;
 
   const cardsTrack = document.getElementById('cardsTrack');
   const emptyState = document.getElementById('emptyState');
@@ -123,8 +124,10 @@
     detailBadge.textContent = jersey.badge;
     detailLogoImg.src = jersey.clips[0].image;
     detailLogoImg.alt = `${jersey.name} crest`;
-    detailImg.src = jersey.image;
-    detailImg.alt = jersey.name;
+    detailImg.src = jersey.backImage && showingBack ? jersey.backImage : jersey.image;
+    detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
+    railNextBtn.disabled = !jersey.backImage;
+    railNextBtn.setAttribute('aria-label', showingBack ? 'Show front side' : 'Show back side');
     detailTitle.textContent = jersey.name;
     detailSubtitle.textContent = '';
     detailSubtitle.hidden = true;
@@ -139,6 +142,7 @@
       btn.textContent = item.name;
       btn.addEventListener('click', () => {
         activeIndex = idx;
+        showingBack = false;
         renderDetail();
       });
       railItems.appendChild(btn);
@@ -169,6 +173,7 @@
     }
 
     activeIndex = index;
+    showingBack = false;
     detailOpen = true;
     carouselView.hidden = true;
     detailView.hidden = false;
@@ -295,8 +300,18 @@
   });
 
   railNextBtn.addEventListener('click', () => {
-    activeIndex = (activeIndex + 1) % JERSEYS.length;
-    renderDetail();
+    const jersey = JERSEYS[activeIndex];
+    if (!jersey.backImage) return;
+
+    showingBack = !showingBack;
+    const nextImage = showingBack ? jersey.backImage : jersey.image;
+    detailImg.animate(
+      [{ opacity: 0.35, transform: 'translateY(-50%) scale(0.985)' }, { opacity: 1, transform: 'translateY(-50%) scale(1)' }],
+      { duration: 260, easing: 'ease-out' }
+    );
+    detailImg.src = nextImage;
+    detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
+    railNextBtn.setAttribute('aria-label', showingBack ? 'Show front side' : 'Show back side');
   });
 
   closeDetailBtn.addEventListener('click', closeDetail);
