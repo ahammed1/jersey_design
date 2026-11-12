@@ -96,9 +96,9 @@
       card.setAttribute('aria-label', `${jersey.name} - ${jersey.club}`);
 
       card.innerHTML = `
-        <div class="jersey-card-img-wrap">
+        ${jersey.id === 'home' ? '' : `<div class="jersey-card-img-wrap">
           <img src="${jersey.image}" alt="${jersey.name}" />
-        </div>
+        </div>`}
         <div class="jersey-card-body">
           <h2 class="jersey-card-title">${jersey.name}</h2>
           <p class="jersey-card-meta">Club <strong>${jersey.club}</strong></p>
