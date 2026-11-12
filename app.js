@@ -207,217 +207,31 @@
     }
   }
 
-  function openDetail(index, sourceCard) {
+  function openDetail(index) {
     if (isTransitioning) return;
-
-    const targetCard =
-      sourceCard ||
-      cardsTrack.querySelector(`.jersey-card[data-jersey-id="${JERSEYS[index].id}"]`);
-
-    let cardRect = null;
-    let imgRect = null;
-    if (targetCard) {
-      cardRect = targetCard.getBoundingClientRect();
-      const imgEl = targetCard.querySelector('.jersey-card-img-wrap');
-      if (imgEl) imgRect = imgEl.getBoundingClientRect();
-    }
 
     activeIndex = index;
     lastSide = 'front';
     detailImg.style.transform = '';
     detailOpen = true;
 
-    // Keep carousel visible briefly beneath while morphing on desktop
-    const useFlip = Boolean(cardRect && window.innerWidth > 900 && detailPanel.animate);
-
-    if (useFlip) {
-      isTransitioning = true;
-      carouselView.style.opacity = '0';
-      carouselView.style.pointerEvents = 'none';
-    } else {
-      carouselView.hidden = true;
-    }
+    carouselView.hidden = true;
+    carouselView.style.opacity = '';
+    carouselView.style.pointerEvents = '';
 
     detailView.hidden = false;
     renderDetail(false);
-
-    if (useFlip) {
-      const panelRect = detailPanel.getBoundingClientRect();
-      const dx = cardRect.left - panelRect.left;
-      const dy = cardRect.top - panelRect.top;
-      const sx = cardRect.width / panelRect.width;
-      const sy = cardRect.height / panelRect.height;
-
-      // 1. Expand colored panel from card bounds
-      // Keep the description panel in its final position; fade it in without sliding from the card.
-      const panelAnim = detailPanel.animate(
-        [
-          { opacity: 0.0 },
-          { opacity: 1.0 }
-        ],
-        {
-          duration: 420,
-          easing: EASE_OUT_EXPO,
-          fill: 'both'
-        }
-      );
-
-      // 2. Glide & scale hero jersey from card image slot into overflowing top-left hero spot
-      if (imgRect && detailMedia.animate) {
-        const targetRect = detailMedia.getBoundingClientRect();
-        const idx = imgRect.left - targetRect.left;
-        const idy = imgRect.top - targetRect.top;
-        const isx = imgRect.width / targetRect.width;
-        const isy = imgRect.height / targetRect.height;
-
-        detailMedia.animate(
-          [
-            {
-              transform: `translate(${idx}px, ${idy}px) scale(${isx}, ${isy})`
-            },
-            {
-              transform: 'translate(0px, 0px) scale(1, 1)'
-            }
-          ],
-          {
-            duration: 560,
-            easing: EASE_OUT_EXPO,
-            fill: 'both'
-          }
-        );
-      }
-
-      // 3. Staggered slide-up entrance for text, clips, crest badge, Close button & left rail
-      const staggeredItems = [
-        { el: detailTitle, delay: 110, y: 18, x: 0 },
-        { el: detailSubtitle, delay: 150, y: 16, x: 0 },
-        { el: detailDescription, delay: 195, y: 18, x: 0 },
-        { el: clipsSection, delay: 245, y: 20, x: 0 },
-        { el: detailLogoWrap, delay: 220, y: -10, x: 0 },
-        { el: detailTopBar, delay: 140, y: -8, x: 0 },
-        { el: detailRail, delay: 160, y: 0, x: -16 }
-      ];
-
-      staggeredItems.forEach(({ el, delay, y, x }) => {
-        if (!el || !el.animate) return;
-        el.animate(
-          [
-            { opacity: 0, transform: `translate(${x}px, ${y}px)` },
-            { opacity: 1, transform: 'translate(0px, 0px)' }
-          ],
-          {
-            duration: 440,
-            delay,
-            easing: EASE_OUT_EXPO,
-            fill: 'both'
-          }
-        );
-      });
-
-      panelAnim.onfinish = () => {
-        carouselView.hidden = true;
-        carouselView.style.opacity = '';
-        carouselView.style.pointerEvents = '';
-        isTransitioning = false;
-      };
-    }
   }
 
   function closeDetail() {
     if (!detailOpen || isTransitioning) return;
 
-    // Prepare carousel underneath to compute target card bounds
+    detailOpen = false;
+    detailView.hidden = true;
     carouselView.hidden = false;
-    carouselView.style.opacity = '0';
+    carouselView.style.opacity = '';
+    carouselView.style.pointerEvents = '';
     renderCarousel();
-
-    const targetCard = cardsTrack.querySelector(
-      `.jersey-card[data-jersey-id="${JERSEYS[activeIndex].id}"]`
-    );
-
-    if (targetCard && window.innerWidth > 900 && detailPanel.animate) {
-      isTransitioning = true;
-      const cardRect = targetCard.getBoundingClientRect();
-      const panelRect = detailPanel.getBoundingClientRect();
-      const dx = cardRect.left - panelRect.left;
-      const dy = cardRect.top - panelRect.top;
-      const sx = cardRect.width / panelRect.width;
-      const sy = cardRect.height / panelRect.height;
-
-      // Fade out text, crest, close button, and side rail first
-      [detailTitle, detailSubtitle, detailDescription, clipsSection, detailLogoWrap, detailTopBar, detailRail].forEach(
-        (el) => {
-          if (!el || !el.animate) return;
-          el.animate([{ opacity: 1 }, { opacity: 0 }], {
-            duration: 160,
-            easing: EASE_OUT_EXPO,
-            fill: 'both'
-          });
-        }
-      );
-
-      // Shrink hero jersey back to card image slot
-      const imgEl = targetCard.querySelector('.jersey-card-img-wrap');
-      if (imgEl && detailMedia.animate) {
-        const imgRect = imgEl.getBoundingClientRect();
-        const targetRect = detailMedia.getBoundingClientRect();
-        const idx = imgRect.left - targetRect.left;
-        const idy = imgRect.top - targetRect.top;
-        const isx = imgRect.width / targetRect.width;
-        const isy = imgRect.height / targetRect.height;
-
-        detailMedia.animate(
-          [
-            { transform: 'translate(0px, 0px) scale(1, 1)' },
-            { transform: `translate(${idx}px, ${idy}px) scale(${isx}, ${isy})` }
-          ],
-          {
-            duration: 360,
-            easing: EASE_OUT_EXPO,
-            fill: 'both'
-          }
-        );
-      }
-
-      // Shrink colored panel back into the card slot
-      const shrinkAnim = detailPanel.animate(
-        [
-          {
-            transform: 'translate(0px, 0px) scale(1, 1)',
-            borderRadius: '36px 0 0 0'
-          },
-          {
-            transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
-            borderRadius: '24px'
-          }
-        ],
-        {
-          duration: 380,
-          easing: EASE_OUT_EXPO,
-          fill: 'both'
-        }
-      );
-
-      carouselView.animate([{ opacity: 0 }, { opacity: 1 }], {
-        duration: 260,
-        delay: 80,
-        easing: EASE_OUT_EXPO,
-        fill: 'both'
-      });
-
-      shrinkAnim.onfinish = () => {
-        detailOpen = false;
-        detailView.hidden = true;
-        carouselView.style.opacity = '';
-        isTransitioning = false;
-      };
-    } else {
-      detailOpen = false;
-      detailView.hidden = true;
-      carouselView.hidden = false;
-      carouselView.style.opacity = '';
-      renderCarousel();
-    }
   }
 
   function openLightbox(clip, jersey) {
