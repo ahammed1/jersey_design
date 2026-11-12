@@ -126,7 +126,8 @@
     detailImg.src = jersey.image;
     detailImg.alt = jersey.name;
     detailTitle.textContent = jersey.name;
-    detailSubtitle.innerHTML = `Club <strong>${jersey.club}</strong> &middot; ${jersey.season}`;
+    detailSubtitle.textContent = '';
+    detailSubtitle.hidden = true;
     detailDescription.textContent = jersey.description;
 
     // Render side rail
@@ -255,7 +256,6 @@
         </span>
         <span class="menu-item-text">
           <strong>${jersey.name}</strong>
-          <span>${jersey.season}</span>
         </span>
       `;
       btn.addEventListener('click', () => {
