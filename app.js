@@ -125,6 +125,7 @@
     detailLogoImg.src = jersey.clips[0].image;
     detailLogoImg.alt = `${jersey.name} crest`;
     detailImg.src = jersey.backImage && showingBack ? jersey.backImage : jersey.image;
+    detailImg.classList.toggle('is-back', showingBack);
     detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
     railNextBtn.disabled = !jersey.backImage;
     railNextBtn.setAttribute('aria-label', showingBack ? 'Show front side' : 'Show back side');
@@ -313,6 +314,7 @@
       showingBack = nextShowingBack;
       detailImg.style.opacity = '0';
       detailImg.src = nextImage;
+      detailImg.classList.toggle('is-back', showingBack);
       detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
       detailImg.onload = () => {
         detailImg.style.transition = 'opacity 220ms ease';
