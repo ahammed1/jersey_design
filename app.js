@@ -24,7 +24,6 @@
   const detailDescription = document.getElementById('detailDescription');
   const clipsGrid = document.getElementById('clipsGrid');
   const railItems = document.getElementById('railItems');
-  const railNextBtn = document.getElementById('railNextBtn');
   const closeDetailBtn = document.getElementById('closeDetailBtn');
   const brandBtn = document.getElementById('brandBtn');
 
@@ -127,9 +126,6 @@
     detailImg.src = jersey.backImage && showingBack ? jersey.backImage : jersey.image;
     detailImg.classList.toggle('is-back', showingBack);
     detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
-    railNextBtn.disabled = !jersey.backImage;
-    railNextBtn.setAttribute('aria-label', showingBack ? 'Show front side' : 'Show back side');
-      railNextBtn.classList.toggle('is-back', showingBack);
     detailTitle.textContent = jersey.name;
     detailSubtitle.textContent = '';
     detailSubtitle.hidden = true;
@@ -301,43 +297,75 @@
     renderCarousel();
   });
 
-  railNextBtn.addEventListener('click', () => {
+  // Swipe horizontally across the jersey to rotate between front and back.
+  let swipeStartX = 0;
+  let swipeStartY = 0;
+  let swipePointerId = null;
+  let isTurning = false;
+
+  detailMedia.addEventListener('pointerdown', (event) => {
+    if (!JERSEYS[activeIndex].backImage || isTurning) return;
+    swipePointerId = event.pointerId;
+    swipeStartX = event.clientX;
+    swipeStartY = event.clientY;
+    detailMedia.setPointerCapture(event.pointerId);
+  });
+
+  detailMedia.addEventListener('pointerup', async (event) => {
+    if (swipePointerId !== event.pointerId) return;
+    swipePointerId = null;
+
+    const deltaX = event.clientX - swipeStartX;
+    const deltaY = event.clientY - swipeStartY;
+    if (Math.abs(deltaX) < 38 || Math.abs(deltaX) < Math.abs(deltaY) * 1.15) return;
+
     const jersey = JERSEYS[activeIndex];
-    if (!jersey.backImage) return;
+    if (!jersey.backImage || isTurning) return;
 
     const nextShowingBack = !showingBack;
     const nextImage = nextShowingBack ? jersey.backImage : jersey.image;
     const preload = new Image();
+    isTurning = true;
+    detailMedia.classList.add('is-turning');
 
-    railNextBtn.disabled = true;
-    preload.onload = () => {
+    try {
+      await new Promise((resolve, reject) => {
+        preload.onload = resolve;
+        preload.onerror = reject;
+        preload.src = nextImage;
+      });
+
+      const firstHalf = detailImg.animate(
+        [
+          { transform: 'perspective(1000px) rotateY(0deg) scale(1)', opacity: 1 },
+          { transform: 'perspective(1000px) rotateY(88deg) scale(0.94)', opacity: 0.25 }
+        ],
+        { duration: 310, easing: 'cubic-bezier(0.65, 0, 0.9, 0.4)', fill: 'forwards' }
+      );
+      await firstHalf.finished;
+
       showingBack = nextShowingBack;
-      detailImg.style.opacity = '0';
       detailImg.src = nextImage;
       detailImg.classList.toggle('is-back', showingBack);
       detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
-      detailImg.onload = () => {
-        detailImg.style.transition = 'opacity 220ms ease';
-        requestAnimationFrame(() => {
-          detailImg.style.opacity = '1';
-        });
-        railNextBtn.disabled = false;
-      };
-      // Cached images may already be complete immediately after src is set.
-      if (detailImg.complete) {
-        detailImg.style.transition = 'opacity 220ms ease';
-        requestAnimationFrame(() => {
-          detailImg.style.opacity = '1';
-        });
-        railNextBtn.disabled = false;
-      }
-      railNextBtn.setAttribute('aria-label', showingBack ? 'Show front side' : 'Show back side');
-    };
-    preload.onerror = () => {
-      railNextBtn.disabled = false;
+
+      detailImg.animate(
+        [
+          { transform: 'perspective(1000px) rotateY(-88deg) scale(0.94)', opacity: 0.25 },
+          { transform: 'perspective(1000px) rotateY(0deg) scale(1)', opacity: 1 }
+        ],
+        { duration: 390, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'both' }
+      );
+    } catch (error) {
       showToast('Unable to load this jersey image. Check the image file path.');
-    };
-    preload.src = nextImage;
+    } finally {
+      isTurning = false;
+      detailMedia.classList.remove('is-turning');
+    }
+  });
+
+  detailMedia.addEventListener('pointercancel', () => {
+    swipePointerId = null;
   });
 
   closeDetailBtn.addEventListener('click', closeDetail);
