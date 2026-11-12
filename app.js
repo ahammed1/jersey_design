@@ -128,6 +128,7 @@
     detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
     railNextBtn.disabled = !jersey.backImage;
     railNextBtn.setAttribute('aria-label', showingBack ? 'Show front side' : 'Show back side');
+      railNextBtn.classList.toggle('is-back', showingBack);
     detailTitle.textContent = jersey.name;
     detailSubtitle.textContent = '';
     detailSubtitle.hidden = true;
