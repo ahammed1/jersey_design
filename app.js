@@ -303,15 +303,38 @@
     const jersey = JERSEYS[activeIndex];
     if (!jersey.backImage) return;
 
-    showingBack = !showingBack;
-    const nextImage = showingBack ? jersey.backImage : jersey.image;
-    detailImg.animate(
-      [{ opacity: 0.35, transform: 'translateY(-50%) scale(0.985)' }, { opacity: 1, transform: 'translateY(-50%) scale(1)' }],
-      { duration: 260, easing: 'ease-out' }
-    );
-    detailImg.src = nextImage;
-    detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
-    railNextBtn.setAttribute('aria-label', showingBack ? 'Show front side' : 'Show back side');
+    const nextShowingBack = !showingBack;
+    const nextImage = nextShowingBack ? jersey.backImage : jersey.image;
+    const preload = new Image();
+
+    railNextBtn.disabled = true;
+    preload.onload = () => {
+      showingBack = nextShowingBack;
+      detailImg.style.opacity = '0';
+      detailImg.src = nextImage;
+      detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
+      detailImg.onload = () => {
+        detailImg.style.transition = 'opacity 220ms ease';
+        requestAnimationFrame(() => {
+          detailImg.style.opacity = '1';
+        });
+        railNextBtn.disabled = false;
+      };
+      // Cached images may already be complete immediately after src is set.
+      if (detailImg.complete) {
+        detailImg.style.transition = 'opacity 220ms ease';
+        requestAnimationFrame(() => {
+          detailImg.style.opacity = '1';
+        });
+        railNextBtn.disabled = false;
+      }
+      railNextBtn.setAttribute('aria-label', showingBack ? 'Show front side' : 'Show back side');
+    };
+    preload.onerror = () => {
+      railNextBtn.disabled = false;
+      showToast('Unable to load this jersey image. Check the image file path.');
+    };
+    preload.src = nextImage;
   });
 
   closeDetailBtn.addEventListener('click', closeDetail);
