@@ -8,6 +8,7 @@ const JERSEYS = [
     detailGradient: 'linear-gradient(125deg, #92400e 0%, #d97706 52%, #f59e0b 100%)',
     accentShadow: 'rgba(217, 119, 6, 0.36)',
     image: 'assets/kbfc-home.png',
+    backImage: 'assets/KBFC-Home-FV-Back-01Large_2d835941-63e0-4c8a-a044-fce51d681370.webp',
     description:
       'The Kerala Blasters FC Home Kit draws inspiration from Kerala’s coastal heritage of coir craftsmanship. Coir rope-inspired stripes bring a distinctive local identity to the classic design, while the navy collar and cuffs feature a subtle coir motif for a refined finish. A piece of Kerala, woven into every thread.',
     clips: [
