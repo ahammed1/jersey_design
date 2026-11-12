@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KBFC Jerseys — Interactive Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="stage">
+    <main class="app-shell" id="appShell">
+      <!-- Header -->
+      <header class="app-header">
+        <button class="brand" id="brandBtn" type="button" aria-label="Back to all jerseys">
+          <span class="brand-logo">KBFC</span>
+          <span class="brand-sub">Jerseys</span>
+        </button>
+
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="search"
+            id="searchInput"
+            class="search-input"
+            placeholder="Search jerseys..."
+            aria-label="Search jerseys"
+            autocomplete="off"
+          />
+        </div>
+
+        <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="menuDrawer">
+          <span>Menu</span>
+          <span class="menu-grid" aria-hidden="true">
+            <i></i><i></i><i></i><i></i>
+          </span>
+        </button>
+      </header>
+
+      <!-- Menu Popover -->
+      <div class="menu-drawer" id="menuDrawer" hidden>
+        <div class="menu-drawer-header">
+          <span>Quick Navigation</span>
+          <button type="button" class="menu-close" id="menuCloseBtn" aria-label="Close menu">&times;</button>
+        </div>
+        <div class="menu-list" id="menuList"></div>
+        <div class="menu-footer">
+          <span>Use &larr; / &rarr; keys to switch, Esc to close</span>
+        </div>
+      </div>
+
+      <!-- Carousel View -->
+      <section class="carousel-view" id="carouselView" aria-label="Jersey collection">
+        <div class="cards-viewport" id="cardsViewport">
+          <div class="cards-track" id="cardsTrack"></div>
+        </div>
+
+        <div class="empty-state" id="emptyState" hidden>
+          <p>No jerseys match "<span id="emptyQuery"></span>".</p>
+          <button type="button" class="reset-btn" id="resetSearchBtn">Show all jerseys</button>
+        </div>
+
+        <footer class="app-footer">
+          <div class="social-links">
+            <button type="button" class="social-link" data-social="Facebook">Facebook</button>
+            <button type="button" class="social-link" data-social="Twitter">Twitter</button>
+          </div>
+          <div class="nav-controls">
+            <button type="button" class="nav-btn" id="prevBtn" aria-label="Previous jersey">
+              <span aria-hidden="true">&lsaquo;</span> Prev
+            </button>
+            <button type="button" class="nav-btn" id="nextBtn" aria-label="Next jersey">
+              Next <span aria-hidden="true">&rsaquo;</span>
+            </button>
+          </div>
+        </footer>
+      </section>
+
+      <!-- Detail View -->
+      <section class="detail-view" id="detailView" hidden aria-label="Jersey details">
+        <aside class="detail-rail" aria-label="Jersey switcher">
+          <div class="rail-items" id="railItems"></div>
+          <button type="button" class="rail-next" id="railNextBtn" aria-label="Next jersey">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </aside>
+
+        <div class="detail-stage">
+          <div class="detail-top-bar">
+            <button type="button" class="close-detail-btn" id="closeDetailBtn">
+              <span aria-hidden="true">&times;</span> Close
+            </button>
+          </div>
+
+          <div class="detail-panel" id="detailPanel">
+            <div class="detail-logo-wrap" id="detailLogoWrap">
+              <img id="detailLogoImg" src="" alt="Club crest" />
+              <span class="detail-logo-label" id="detailBadge"></span>
+            </div>
+
+            <div class="detail-media" id="detailMedia">
+              <img id="detailImg" src="" alt="" />
+            </div>
+
+            <div class="detail-content" id="detailContent">
+              <h1 class="detail-title" id="detailTitle"></h1>
+              <p class="detail-subtitle" id="detailSubtitle"></p>
+              <p class="detail-description" id="detailDescription"></p>
+
+              <div class="clips-section">
+                <h2 class="clips-heading">Details</h2>
+                <div class="clips-grid" id="clipsGrid"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Lightbox Modal for Detail Thumbnails -->
+  <div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-labelledby="lightboxTitle">
+    <div class="lightbox-card">
+      <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Close preview">&times;</button>
+      <div class="lightbox-img-wrap" id="lightboxImgWrap">
+        <img id="lightboxImg" src="" alt="" />
+      </div>
+      <div class="lightbox-caption">
+        <h3 id="lightboxTitle"></h3>
+        <p id="lightboxCaption"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
