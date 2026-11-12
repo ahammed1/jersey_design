@@ -648,8 +648,8 @@ html, body {
 }
 
 .detail-media img.is-back {
-  width: 145%;
-  height: 145%;
+  width: 155%;
+  height: 155%;
   max-width: none;
   object-fit: contain;
 }
@@ -887,8 +887,8 @@ html, body {
   }
 
   .detail-media img.is-back {
-    width: 150%;
-    height: 150%;
+    width: 155%;
+    height: 155%;
     max-width: none;
   }
 
