@@ -3,7 +3,7 @@
 }
 
 :root {
-  --bg-outer: linear-gradient(135deg, #d7dae2 0%, #c1c6d0 100%);
+  --bg-outer: #ffffff;
   --surface: #ffffff;
   --text-main: #18181b;
   --text-muted: #71717a;
