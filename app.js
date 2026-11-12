@@ -247,7 +247,7 @@
           }
         ],
         {
-          duration: 540,
+          duration: 620,
           easing: EASE_OUT_EXPO,
           fill: 'both'
         }
