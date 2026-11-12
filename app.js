@@ -267,11 +267,11 @@
               transform: `translate(${idx}px, ${idy}px) scale(${isx}, ${isy})`
             },
             {
-              transform: 'translate(38px, 0px) scale(1.12, 1.12)'
+              transform: 'translate(0px, 0px) scale(1, 1)'
             }
           ],
           {
-            duration: 720,
+            duration: 560,
             easing: EASE_OUT_EXPO,
             fill: 'both'
           }
@@ -280,14 +280,13 @@
 
       // 3. Staggered slide-up entrance for text, clips, crest badge, Close button & left rail
       const staggeredItems = [
-        // Description content enters only after the jersey has moved and zoomed.
-        { el: detailTitle, delay: 520, y: 14, x: 28 },
-        { el: detailSubtitle, delay: 570, y: 12, x: 28 },
-        { el: detailDescription, delay: 620, y: 14, x: 28 },
-        { el: clipsSection, delay: 680, y: 18, x: 0 },
-        { el: detailLogoWrap, delay: 560, y: -8, x: 0 },
-        { el: detailTopBar, delay: 420, y: -8, x: 0 },
-        { el: detailRail, delay: 460, y: 0, x: -16 }
+        { el: detailTitle, delay: 110, y: 18, x: 0 },
+        { el: detailSubtitle, delay: 150, y: 16, x: 0 },
+        { el: detailDescription, delay: 195, y: 18, x: 0 },
+        { el: clipsSection, delay: 245, y: 20, x: 0 },
+        { el: detailLogoWrap, delay: 220, y: -10, x: 0 },
+        { el: detailTopBar, delay: 140, y: -8, x: 0 },
+        { el: detailRail, delay: 160, y: 0, x: -16 }
       ];
 
       staggeredItems.forEach(({ el, delay, y, x }) => {
