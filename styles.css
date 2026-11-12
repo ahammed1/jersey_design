@@ -8,7 +8,6 @@
   --text-main: #18181b;
   --text-muted: #71717a;
   --pill-bg: #f4f4f6;
-  --radius-shell: 28px;
   --radius-card: 24px;
   --transition-smooth: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -16,30 +15,32 @@
 html, body {
   margin: 0;
   padding: 0;
-  min-height: 100%;
+  width: 100%;
+  height: 100%;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--text-main);
-  background: var(--bg-outer);
+  background: #ffffff;
   -webkit-font-smoothing: antialiased;
 }
 
 .stage {
+  width: 100%;
   min-height: 100vh;
+  padding: 0;
+  margin: 0;
+  background: #ffffff;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 28px 20px;
+  flex-direction: column;
 }
 
 .app-shell {
   position: relative;
   width: 100%;
-  max-width: 1100px;
-  min-height: 620px;
-  background: var(--surface);
-  border-radius: var(--radius-shell);
+  min-height: 100vh;
+  background: #ffffff;
+  border-radius: 0;
   box-shadow: none;
-  overflow: hidden;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -50,9 +51,10 @@ html, body {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 28px 44px 12px;
+  padding: 32px 56px 14px;
   position: relative;
-  z-index: 20;
+  z-index: 30;
+  background: transparent;
 }
 
 .brand {
@@ -82,7 +84,7 @@ html, body {
 .search-wrap {
   position: relative;
   width: 100%;
-  max-width: 280px;
+  max-width: 300px;
 }
 
 .search-icon {
@@ -158,8 +160,8 @@ html, body {
 /* Menu Drawer */
 .menu-drawer {
   position: absolute;
-  top: 76px;
-  right: 44px;
+  top: 78px;
+  right: 56px;
   width: 260px;
   background: #ffffff;
   border: 1px solid #e4e4e7;
@@ -259,7 +261,8 @@ html, body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 10px 44px 28px;
+  padding: 12px 56px 34px;
+  transition: opacity 0.28s ease;
 }
 
 .cards-viewport {
@@ -267,7 +270,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 64px 8px 24px;
+  padding: 72px 8px 24px;
   overflow: visible;
 }
 
@@ -275,24 +278,24 @@ html, body {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 36px;
+  gap: 44px;
   width: 100%;
   transition: transform 0.55s var(--transition-smooth);
 }
 
 .jersey-card {
   position: relative;
-  width: 270px;
-  height: 295px;
+  width: 280px;
+  height: 310px;
   border-radius: var(--radius-card);
-  padding: 26px;
+  padding: 28px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   color: #ffffff;
   cursor: pointer;
   user-select: none;
-  transition: transform 0.38s var(--transition-smooth), box-shadow 0.38s var(--transition-smooth), opacity 0.35s ease;
+  transition: transform 0.38s var(--transition-smooth), box-shadow 0.38s var(--transition-smooth), opacity 0.32s ease;
   flex-shrink: 0;
 }
 
@@ -317,11 +320,11 @@ html, body {
 
 .jersey-card-img-wrap {
   position: absolute;
-  top: -78px;
+  top: -82px;
   left: 50%;
   transform: translateX(-50%);
-  width: 215px;
-  height: 255px;
+  width: 225px;
+  height: 265px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -475,17 +478,18 @@ html, body {
   border-color: transparent;
 }
 
-/* Detail View */
+/* Detail View — Full-Viewport Flush Layout */
 .detail-view {
-  position: absolute;
-  top: 88px;
+  position: fixed;
+  top: 98px;
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 10;
+  z-index: 15;
   display: flex;
   min-height: 0;
-  background: var(--surface);
+  background: transparent;
+  overflow: visible;
 }
 
 .detail-view[hidden] {
@@ -493,22 +497,21 @@ html, body {
 }
 
 .detail-rail {
-  width: 78px;
+  width: 92px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 24px 0 28px;
+  padding: 64px 0 36px;
   flex-shrink: 0;
-  animation: fadeIn 0.35s var(--transition-smooth);
 }
 
 .rail-items {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 44px;
-  margin-top: 40px;
+  gap: 48px;
+  margin-top: 24px;
 }
 
 .rail-item {
@@ -522,7 +525,11 @@ html, body {
   font-weight: 500;
   color: #a1a1aa;
   cursor: pointer;
-  transition: color 0.2s ease, font-size 0.2s ease;
+  transition: color 0.25s ease, font-size 0.25s ease, transform 0.25s ease;
+}
+
+.rail-item:hover {
+  color: var(--text-main);
 }
 
 .rail-item.is-active {
@@ -536,13 +543,13 @@ html, body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  overflow: visible;
 }
 
 .detail-top-bar {
   display: flex;
   justify-content: flex-end;
-  padding: 6px 44px 12px;
-  animation: fadeIn 0.3s var(--transition-smooth);
+  padding: 0 56px 16px;
 }
 
 .close-detail-btn {
@@ -558,7 +565,7 @@ html, body {
   font-weight: 600;
   color: var(--text-main);
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .close-detail-btn:hover {
@@ -568,32 +575,33 @@ html, body {
 .detail-panel {
   position: relative;
   flex: 1;
-  border-top-left-radius: 36px;
-  padding: 40px 48px 36px 290px;
+  border-top-left-radius: 40px;
+  padding: 52px 72px 48px 360px;
   color: #ffffff;
   display: flex;
   flex-direction: column;
   justify-content: center;
   transform-origin: top left;
   transition: background 0.45s ease;
+  overflow: visible;
+  will-change: transform, border-radius;
 }
 
 /* Club Crest Logo in top-right of detail panel */
 .detail-logo-wrap {
   position: absolute;
-  top: 24px;
-  right: 34px;
+  top: 32px;
+  right: 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
   z-index: 3;
-  animation: fadeIn 0.45s var(--transition-smooth);
 }
 
 .detail-logo-wrap img {
-  width: 56px;
-  height: 56px;
+  width: 62px;
+  height: 62px;
   object-fit: contain;
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
 }
@@ -606,13 +614,13 @@ html, body {
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* Hero Jersey Image — extends prominently above the top edge of .detail-panel */
 .detail-media {
   position: absolute;
-  left: -34px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 300px;
-  height: 380px;
+  left: -24px;
+  top: -76px;
+  width: 345px;
+  height: 470px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -621,7 +629,9 @@ html, body {
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
-  z-index: 4;
+  z-index: 5;
+  transform-origin: center center;
+  will-change: transform;
 }
 
 .detail-media img {
@@ -630,7 +640,7 @@ html, body {
   object-fit: contain;
   transform-style: preserve-3d;
   backface-visibility: hidden;
-  filter: drop-shadow(0 24px 32px rgba(15, 23, 42, 0.34));
+  filter: drop-shadow(0 28px 36px rgba(15, 23, 42, 0.36));
 }
 
 .detail-media.is-turning {
@@ -638,31 +648,30 @@ html, body {
 }
 
 .detail-media img.is-back {
-  width: 150%;
-  height: 150%;
+  width: 145%;
+  height: 145%;
   max-width: none;
   object-fit: contain;
 }
 
 .detail-content {
-  max-width: 500px;
+  max-width: 560px;
   position: relative;
   z-index: 2;
-  animation: contentSlideIn 0.45s var(--transition-smooth);
 }
 
 .detail-title {
-  margin: 0 0 6px;
-  font-size: 36px;
+  margin: 0 0 8px;
+  font-size: 42px;
   font-weight: 800;
   letter-spacing: -0.03em;
-  line-height: 1.1;
+  line-height: 1.08;
 }
 
 .detail-subtitle {
-  margin: 0 0 18px;
+  margin: 0 0 20px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.86);
+  color: rgba(255, 255, 255, 0.84);
 }
 
 .detail-subtitle strong {
@@ -671,15 +680,15 @@ html, body {
 }
 
 .detail-description {
-  margin: 0 0 24px;
-  font-size: 13.5px;
-  line-height: 1.65;
+  margin: 0 0 28px;
+  font-size: 14px;
+  line-height: 1.68;
   color: rgba(255, 255, 255, 0.92);
 }
 
 .clips-heading {
-  margin: 0 0 12px;
-  font-size: 14px;
+  margin: 0 0 14px;
+  font-size: 14.5px;
   font-weight: 700;
   color: #ffffff;
 }
@@ -687,12 +696,12 @@ html, body {
 .clips-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .clip-card {
   position: relative;
-  height: 92px;
+  height: 100px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.24);
@@ -813,16 +822,6 @@ html, body {
   z-index: 70;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes contentSlideIn {
-  from { opacity: 0; transform: translateX(18px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
 @keyframes fadeSlideDown {
   from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -850,7 +849,7 @@ html, body {
   }
 
   .detail-view {
-    top: 82px;
+    top: 112px;
     bottom: 0;
     flex-direction: column;
     overflow-y: auto;
@@ -884,7 +883,7 @@ html, body {
     transform: none;
     width: 100%;
     height: 240px;
-    margin-bottom: 46px;
+    margin-bottom: 24px;
   }
 
   .detail-media img.is-back {
@@ -905,10 +904,6 @@ html, body {
 }
 
 @media (max-width: 600px) {
-  .stage {
-    padding: 12px;
-  }
-
   .jersey-card {
     width: 100%;
     max-width: 290px;

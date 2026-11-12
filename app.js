@@ -2,6 +2,7 @@
   let activeIndex = 0;
   let searchQuery = '';
   let detailOpen = false;
+  let isTransitioning = false;
   let showingBack = false;
 
   const cardsTrack = document.getElementById('cardsTrack');
@@ -14,7 +15,10 @@
 
   const carouselView = document.getElementById('carouselView');
   const detailView = document.getElementById('detailView');
+  const detailRail = document.querySelector('.detail-rail');
+  const detailTopBar = document.querySelector('.detail-top-bar');
   const detailPanel = document.getElementById('detailPanel');
+  const detailLogoWrap = document.getElementById('detailLogoWrap');
   const detailBadge = document.getElementById('detailBadge');
   const detailLogoImg = document.getElementById('detailLogoImg');
   const detailMedia = document.getElementById('detailMedia');
@@ -22,6 +26,7 @@
   const detailTitle = document.getElementById('detailTitle');
   const detailSubtitle = document.getElementById('detailSubtitle');
   const detailDescription = document.getElementById('detailDescription');
+  const clipsSection = document.querySelector('.clips-section');
   const clipsGrid = document.getElementById('clipsGrid');
   const railItems = document.getElementById('railItems');
   const closeDetailBtn = document.getElementById('closeDetailBtn');
@@ -41,6 +46,8 @@
 
   const toast = document.getElementById('toast');
   let toastTimer = null;
+
+  const EASE_OUT_EXPO = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
   function showToast(msg) {
     toast.textContent = msg;
@@ -80,6 +87,7 @@
     list.forEach((jersey, idx) => {
       const card = document.createElement('article');
       card.className = 'jersey-card' + (idx === activeIndex ? ' is-active' : '');
+      card.dataset.jerseyId = jersey.id;
       card.style.background = jersey.gradient;
       card.style.boxShadow = `0 22px 42px ${jersey.accentShadow}`;
       card.setAttribute('tabindex', '0');
@@ -117,7 +125,40 @@
     nextBtn.disabled = list.length <= 1;
   }
 
-  function renderDetail() {
+  function animateDetailContentSwitch() {
+    const targets = [detailTitle, detailSubtitle, detailDescription, clipsSection];
+    targets.forEach((el, i) => {
+      if (!el || !el.animate) return;
+      el.animate(
+        [
+          { opacity: 0, transform: 'translateY(14px)' },
+          { opacity: 1, transform: 'translateY(0)' }
+        ],
+        {
+          duration: 380,
+          delay: i * 45,
+          easing: EASE_OUT_EXPO,
+          fill: 'both'
+        }
+      );
+    });
+
+    if (detailMedia && detailMedia.animate) {
+      detailMedia.animate(
+        [
+          { opacity: 0.4, transform: 'translateY(16px) scale(0.95)' },
+          { opacity: 1, transform: 'translateY(0) scale(1)' }
+        ],
+        {
+          duration: 420,
+          easing: EASE_OUT_EXPO,
+          fill: 'both'
+        }
+      );
+    }
+  }
+
+  function renderDetail(animateSwitch = false) {
     const jersey = JERSEYS[activeIndex];
     detailPanel.style.background = jersey.detailGradient;
     detailBadge.textContent = jersey.badge;
@@ -127,8 +168,8 @@
     detailImg.classList.toggle('is-back', showingBack);
     detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
     detailTitle.textContent = jersey.name;
-    detailSubtitle.textContent = '';
-    detailSubtitle.hidden = true;
+    detailSubtitle.hidden = false;
+    detailSubtitle.innerHTML = `Club <strong>${jersey.club}</strong>`;
     detailDescription.textContent = jersey.description;
 
     // Render side rail
@@ -139,9 +180,12 @@
       btn.className = 'rail-item' + (idx === activeIndex ? ' is-active' : '');
       btn.textContent = item.name;
       btn.addEventListener('click', () => {
+        if (idx === activeIndex) return;
         activeIndex = idx;
         showingBack = false;
-        renderDetail();
+        lastSide = 'front';
+        detailImg.style.transform = '';
+        renderDetail(true);
       });
       railItems.appendChild(btn);
     });
@@ -159,49 +203,74 @@
       btn.addEventListener('click', () => openLightbox(clip, jersey));
       clipsGrid.appendChild(btn);
     });
+
+    if (animateSwitch) {
+      animateDetailContentSwitch();
+    }
   }
 
   function openDetail(index, sourceCard) {
+    if (isTransitioning) return;
+
+    const targetCard =
+      sourceCard ||
+      cardsTrack.querySelector(`.jersey-card[data-jersey-id="${JERSEYS[index].id}"]`);
+
     let cardRect = null;
     let imgRect = null;
-    if (sourceCard) {
-      cardRect = sourceCard.getBoundingClientRect();
-      const imgEl = sourceCard.querySelector('.jersey-card-img-wrap');
+    if (targetCard) {
+      cardRect = targetCard.getBoundingClientRect();
+      const imgEl = targetCard.querySelector('.jersey-card-img-wrap');
       if (imgEl) imgRect = imgEl.getBoundingClientRect();
     }
 
     activeIndex = index;
     showingBack = false;
+    lastSide = 'front';
+    detailImg.style.transform = '';
     detailOpen = true;
-    carouselView.hidden = true;
-    detailView.hidden = false;
-    renderDetail();
 
-    // FLIP shared-element expand animation matching the video
-    if (cardRect && window.innerWidth > 900 && detailPanel.animate) {
+    // Keep carousel visible briefly beneath while morphing on desktop
+    const useFlip = Boolean(cardRect && window.innerWidth > 900 && detailPanel.animate);
+
+    if (useFlip) {
+      isTransitioning = true;
+      carouselView.style.opacity = '0';
+      carouselView.style.pointerEvents = 'none';
+    } else {
+      carouselView.hidden = true;
+    }
+
+    detailView.hidden = false;
+    renderDetail(false);
+
+    if (useFlip) {
       const panelRect = detailPanel.getBoundingClientRect();
       const dx = cardRect.left - panelRect.left;
       const dy = cardRect.top - panelRect.top;
       const sx = cardRect.width / panelRect.width;
       const sy = cardRect.height / panelRect.height;
 
-      detailPanel.animate(
+      // 1. Expand colored panel from card bounds
+      const panelAnim = detailPanel.animate(
         [
           {
             transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
             borderRadius: '24px'
           },
           {
-            transform: 'translate(0, 0) scale(1, 1)',
+            transform: 'translate(0px, 0px) scale(1, 1)',
             borderRadius: '36px 0 0 0'
           }
         ],
         {
-          duration: 460,
-          easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
+          duration: 540,
+          easing: EASE_OUT_EXPO,
+          fill: 'both'
         }
       );
 
+      // 2. Glide & scale hero jersey from card image slot into overflowing top-left hero spot
       if (imgRect && detailMedia.animate) {
         const targetRect = detailMedia.getBoundingClientRect();
         const idx = imgRect.left - targetRect.left;
@@ -212,26 +281,151 @@
         detailMedia.animate(
           [
             {
-              transform: `translate(${idx}px, calc(-50% + ${idy}px)) scale(${isx}, ${isy})`
+              transform: `translate(${idx}px, ${idy}px) scale(${isx}, ${isy})`
             },
             {
-              transform: 'translate(0, -50%) scale(1, 1)'
+              transform: 'translate(0px, 0px) scale(1, 1)'
             }
           ],
           {
-            duration: 480,
-            easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
+            duration: 560,
+            easing: EASE_OUT_EXPO,
+            fill: 'both'
           }
         );
       }
+
+      // 3. Staggered slide-up entrance for text, clips, crest badge, Close button & left rail
+      const staggeredItems = [
+        { el: detailTitle, delay: 110, y: 18, x: 0 },
+        { el: detailSubtitle, delay: 150, y: 16, x: 0 },
+        { el: detailDescription, delay: 195, y: 18, x: 0 },
+        { el: clipsSection, delay: 245, y: 20, x: 0 },
+        { el: detailLogoWrap, delay: 220, y: -10, x: 0 },
+        { el: detailTopBar, delay: 140, y: -8, x: 0 },
+        { el: detailRail, delay: 160, y: 0, x: -16 }
+      ];
+
+      staggeredItems.forEach(({ el, delay, y, x }) => {
+        if (!el || !el.animate) return;
+        el.animate(
+          [
+            { opacity: 0, transform: `translate(${x}px, ${y}px)` },
+            { opacity: 1, transform: 'translate(0px, 0px)' }
+          ],
+          {
+            duration: 440,
+            delay,
+            easing: EASE_OUT_EXPO,
+            fill: 'both'
+          }
+        );
+      });
+
+      panelAnim.onfinish = () => {
+        carouselView.hidden = true;
+        carouselView.style.opacity = '';
+        carouselView.style.pointerEvents = '';
+        isTransitioning = false;
+      };
     }
   }
 
   function closeDetail() {
-    detailOpen = false;
-    detailView.hidden = true;
+    if (!detailOpen || isTransitioning) return;
+
+    // Prepare carousel underneath to compute target card bounds
     carouselView.hidden = false;
+    carouselView.style.opacity = '0';
     renderCarousel();
+
+    const targetCard = cardsTrack.querySelector(
+      `.jersey-card[data-jersey-id="${JERSEYS[activeIndex].id}"]`
+    );
+
+    if (targetCard && window.innerWidth > 900 && detailPanel.animate) {
+      isTransitioning = true;
+      const cardRect = targetCard.getBoundingClientRect();
+      const panelRect = detailPanel.getBoundingClientRect();
+      const dx = cardRect.left - panelRect.left;
+      const dy = cardRect.top - panelRect.top;
+      const sx = cardRect.width / panelRect.width;
+      const sy = cardRect.height / panelRect.height;
+
+      // Fade out text, crest, close button, and side rail first
+      [detailTitle, detailSubtitle, detailDescription, clipsSection, detailLogoWrap, detailTopBar, detailRail].forEach(
+        (el) => {
+          if (!el || !el.animate) return;
+          el.animate([{ opacity: 1 }, { opacity: 0 }], {
+            duration: 200,
+            easing: 'ease-out',
+            fill: 'both'
+          });
+        }
+      );
+
+      // Shrink hero jersey back to card image slot
+      const imgEl = targetCard.querySelector('.jersey-card-img-wrap');
+      if (imgEl && detailMedia.animate) {
+        const imgRect = imgEl.getBoundingClientRect();
+        const targetRect = detailMedia.getBoundingClientRect();
+        const idx = imgRect.left - targetRect.left;
+        const idy = imgRect.top - targetRect.top;
+        const isx = imgRect.width / targetRect.width;
+        const isy = imgRect.height / targetRect.height;
+
+        detailMedia.animate(
+          [
+            { transform: 'translate(0px, 0px) scale(1, 1)' },
+            { transform: `translate(${idx}px, ${idy}px) scale(${isx}, ${isy})` }
+          ],
+          {
+            duration: 440,
+            easing: EASE_OUT_EXPO,
+            fill: 'both'
+          }
+        );
+      }
+
+      // Shrink colored panel back into the card slot
+      const shrinkAnim = detailPanel.animate(
+        [
+          {
+            transform: 'translate(0px, 0px) scale(1, 1)',
+            borderRadius: '36px 0 0 0'
+          },
+          {
+            transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
+            borderRadius: '24px'
+          }
+        ],
+        {
+          duration: 440,
+          easing: EASE_OUT_EXPO,
+          fill: 'both'
+        }
+      );
+
+      carouselView.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: 320,
+        delay: 140,
+        easing: 'ease-out',
+        fill: 'both'
+      });
+
+      shrinkAnim.onfinish = () => {
+        detailOpen = false;
+        detailView.hidden = true;
+        carouselView.style.opacity = '';
+        isTransitioning = false;
+      };
+    } else {
+      detailOpen = false;
+      detailView.hidden = true;
+      carouselView.hidden = false;
+      carouselView.style.opacity = '';
+      renderCarousel();
+    }
   }
 
   function openLightbox(clip, jersey) {
@@ -264,7 +458,15 @@
       btn.addEventListener('click', () => {
         menuDrawer.hidden = true;
         menuBtn.setAttribute('aria-expanded', 'false');
-        openDetail(idx);
+        if (detailOpen) {
+          activeIndex = idx;
+          showingBack = false;
+          lastSide = 'front';
+          detailImg.style.transform = '';
+          renderDetail(true);
+        } else {
+          openDetail(idx);
+        }
       });
       menuList.appendChild(btn);
     });
@@ -273,7 +475,11 @@
   // Event listeners
   searchInput.addEventListener('input', (e) => {
     searchQuery = e.target.value;
-    if (detailOpen) closeDetail();
+    if (detailOpen) {
+      detailOpen = false;
+      detailView.hidden = true;
+      carouselView.hidden = false;
+    }
     renderCarousel();
   });
 
@@ -302,7 +508,7 @@
 
   function rotateJerseyWithPointer(event) {
     const jersey = JERSEYS[activeIndex];
-    if (!jersey.backImage || !detailOpen) return;
+    if (!jersey.backImage || !detailOpen || isTransitioning) return;
 
     const rect = detailMedia.getBoundingClientRect();
     const pointerX = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
@@ -387,14 +593,20 @@
     } else if (e.key === 'ArrowRight') {
       if (detailOpen) {
         activeIndex = (activeIndex + 1) % JERSEYS.length;
-        renderDetail();
+        showingBack = false;
+        lastSide = 'front';
+        detailImg.style.transform = '';
+        renderDetail(true);
       } else {
         nextBtn.click();
       }
     } else if (e.key === 'ArrowLeft') {
       if (detailOpen) {
         activeIndex = (activeIndex - 1 + JERSEYS.length) % JERSEYS.length;
-        renderDetail();
+        showingBack = false;
+        lastSide = 'front';
+        detailImg.style.transform = '';
+        renderDetail(true);
       } else {
         prevBtn.click();
       }
