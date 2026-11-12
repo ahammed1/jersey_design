@@ -144,9 +144,19 @@
       railItems.appendChild(btn);
     });
 
-    // Detail thumbnails are intentionally hidden for a cleaner centered layout
+    // Render detail clips
     clipsGrid.innerHTML = '';
-    clipsGrid.closest('.clips-section').hidden = true;
+    jersey.clips.forEach((clip) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'clip-card';
+      btn.innerHTML = `
+        <img src="${clip.image}" alt="${clip.title}" />
+        <span class="clip-label">${clip.title}</span>
+      `;
+      btn.addEventListener('click', () => openLightbox(clip, jersey));
+      clipsGrid.appendChild(btn);
+    });
   }
 
   function openDetail(index, sourceCard) {
