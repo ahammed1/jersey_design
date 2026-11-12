@@ -144,19 +144,9 @@
       railItems.appendChild(btn);
     });
 
-    // Render detail clips
+    // Detail thumbnails are intentionally hidden for a cleaner centered layout
     clipsGrid.innerHTML = '';
-    jersey.clips.forEach((clip) => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'clip-card';
-      btn.innerHTML = `
-        <img src="${clip.image}" alt="${clip.title}" />
-        <span class="clip-label">${clip.title}</span>
-      `;
-      btn.addEventListener('click', () => openLightbox(clip, jersey));
-      clipsGrid.appendChild(btn);
-    });
+    clipsGrid.closest('.clips-section').hidden = true;
   }
 
   function openDetail(index, sourceCard) {
