@@ -619,6 +619,8 @@ html, body {
   pointer-events: auto;
   touch-action: pan-y;
   cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
   z-index: 4;
 }
 
