@@ -161,11 +161,13 @@
 
   function openDetail(index, sourceCard) {
     let cardRect = null;
-    let imgRect = null;
+    let sourceImage = null;
+    let imageRect = null;
+
     if (sourceCard) {
       cardRect = sourceCard.getBoundingClientRect();
-      const imgEl = sourceCard.querySelector('.jersey-card-img-wrap');
-      if (imgEl) imgRect = imgEl.getBoundingClientRect();
+      sourceImage = sourceCard.querySelector('.jersey-card-img-wrap img');
+      if (sourceImage) imageRect = sourceImage.getBoundingClientRect();
     }
 
     activeIndex = index;
@@ -174,7 +176,8 @@
     detailView.hidden = false;
     renderDetail();
 
-    // FLIP shared-element expand animation matching the video
+    // Expand the selected card into the detail panel and carry the same
+    // jersey image across the transition as a shared visual element.
     if (cardRect && window.innerWidth > 900 && detailPanel.animate) {
       const panelRect = detailPanel.getBoundingClientRect();
       const dx = cardRect.left - panelRect.left;
@@ -184,42 +187,48 @@
 
       detailPanel.animate(
         [
-          {
-            transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
-            borderRadius: '24px'
-          },
-          {
-            transform: 'translate(0, 0) scale(1, 1)',
-            borderRadius: '36px 0 0 0'
-          }
+          { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, borderRadius: '24px' },
+          { transform: 'translate(0, 0) scale(1, 1)', borderRadius: '36px 0 0 0' }
         ],
-        {
-          duration: 460,
-          easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
-        }
+        { duration: 650, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
       );
 
-      if (imgRect && detailMedia.animate) {
-        const targetRect = detailMedia.getBoundingClientRect();
-        const idx = imgRect.left - targetRect.left;
-        const idy = imgRect.top - targetRect.top;
-        const isx = imgRect.width / targetRect.width;
-        const isy = imgRect.height / targetRect.height;
+      if (sourceImage && imageRect && detailImg.animate) {
+        const targetRect = detailImg.getBoundingClientRect();
+        const movingImage = sourceImage.cloneNode(true);
+        Object.assign(movingImage.style, {
+          position: 'fixed',
+          left: imageRect.left + 'px',
+          top: imageRect.top + 'px',
+          width: imageRect.width + 'px',
+          height: imageRect.height + 'px',
+          maxWidth: 'none',
+          maxHeight: 'none',
+          objectFit: 'contain',
+          margin: '0',
+          zIndex: '1000',
+          pointerEvents: 'none',
+          transformOrigin: 'top left',
+          filter: 'drop-shadow(0 18px 24px rgba(15, 23, 42, 0.28))'
+        });
+        document.body.appendChild(movingImage);
+        detailImg.style.opacity = '0';
 
-        detailMedia.animate(
+        const imageAnimation = movingImage.animate(
           [
-            {
-              transform: `translate(${idx}px, calc(-50% + ${idy}px)) scale(${isx}, ${isy})`
-            },
-            {
-              transform: 'translate(0, -50%) scale(1, 1)'
-            }
+            { left: imageRect.left + 'px', top: imageRect.top + 'px', width: imageRect.width + 'px', height: imageRect.height + 'px' },
+            { left: targetRect.left + 'px', top: targetRect.top + 'px', width: targetRect.width + 'px', height: targetRect.height + 'px' }
           ],
-          {
-            duration: 480,
-            easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
-          }
+          { duration: 700, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' }
         );
+
+        imageAnimation.finished.then(() => {
+          movingImage.remove();
+          detailImg.style.opacity = '';
+        }).catch(() => {
+          movingImage.remove();
+          detailImg.style.opacity = '';
+        });
       }
     }
   }
