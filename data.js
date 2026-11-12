@@ -38,6 +38,7 @@ const JERSEYS = [
     detailGradient: 'linear-gradient(125deg, #1e3a8a 0%, #2563eb 55%, #3b82f6 100%)',
     accentShadow: 'rgba(37, 99, 235, 0.36)',
     image: 'assets/kbfc-away.png',
+    backImage: 'assets/kbfc-away-back.webp',
     description:
       'The Kerala Blasters FC Away Kit draws inspiration from Edavappathi, Kerala’s southwest monsoon, featuring a flowing rain-droplet pattern in layered shades of grey. Sky blue, navy, and white ombré accents on the collar and cuffs reflect the changing tones of a monsoon sky, capturing the season’s calm and atmospheric character.',
     clips: [
