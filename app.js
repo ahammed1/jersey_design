@@ -58,7 +58,7 @@
       (j) =>
         j.name.toLowerCase().includes(q) ||
         j.club.toLowerCase().includes(q) ||
-        j.season.toLowerCase().includes(q)
+        (j.season || '').toLowerCase().includes(q)
     );
   }
 
