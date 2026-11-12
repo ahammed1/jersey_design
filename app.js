@@ -3,7 +3,6 @@
   let searchQuery = '';
   let detailOpen = false;
   let isTransitioning = false;
-  let showingBack = false;
 
   const cardsTrack = document.getElementById('cardsTrack');
   const emptyState = document.getElementById('emptyState');
@@ -164,9 +163,9 @@
     detailBadge.textContent = jersey.badge;
     detailLogoImg.src = jersey.clips[0].image;
     detailLogoImg.alt = `${jersey.name} crest`;
-    detailImg.src = jersey.backImage && showingBack ? jersey.backImage : jersey.image;
-    detailImg.classList.toggle('is-back', showingBack);
-    detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
+    detailImg.src = jersey.image;
+    detailImg.classList.remove('is-back');
+    detailImg.alt = `${jersey.name} — front side`;
     detailTitle.textContent = jersey.name;
     detailSubtitle.hidden = false;
     detailSubtitle.innerHTML = `Club <strong>${jersey.club}</strong>`;
@@ -182,7 +181,6 @@
       btn.addEventListener('click', () => {
         if (idx === activeIndex) return;
         activeIndex = idx;
-        showingBack = false;
         lastSide = 'front';
         detailImg.style.transform = '';
         renderDetail(true);
@@ -225,7 +223,6 @@
     }
 
     activeIndex = index;
-    showingBack = false;
     lastSide = 'front';
     detailImg.style.transform = '';
     detailOpen = true;
@@ -460,7 +457,6 @@
         menuBtn.setAttribute('aria-expanded', 'false');
         if (detailOpen) {
           activeIndex = idx;
-          showingBack = false;
           lastSide = 'front';
           detailImg.style.transform = '';
           renderDetail(true);
@@ -501,52 +497,6 @@
     if (list.length <= 1) return;
     activeIndex = (activeIndex + 1) % list.length;
     renderCarousel();
-  });
-
-  // Simple cursor-controlled jersey turn: move across the image to rotate.
-  let lastSide = showingBack ? 'back' : 'front';
-
-  function rotateJerseyWithPointer(event) {
-    const jersey = JERSEYS[activeIndex];
-    if (!jersey.backImage || !detailOpen || isTransitioning) return;
-
-    const rect = detailMedia.getBoundingClientRect();
-    const pointerX = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
-    const angle = pointerX * 180;
-    const side = pointerX >= 0.5 ? 'back' : 'front';
-
-    if (side !== lastSide && !isJerseyImageLoading) {
-      const nextImage = side === 'back' ? jersey.backImage : jersey.image;
-      const preload = new Image();
-      isJerseyImageLoading = true;
-      preload.onload = () => {
-        showingBack = side === 'back';
-        lastSide = side;
-        detailImg.src = nextImage;
-        detailImg.classList.toggle('is-back', showingBack);
-        detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
-        isJerseyImageLoading = false;
-      };
-      preload.onerror = () => {
-        isJerseyImageLoading = false;
-      };
-      preload.src = nextImage;
-    }
-
-    const visibleAngle = side === 'back' ? angle - 180 : angle;
-    detailImg.style.transform = `perspective(1000px) rotateY(${visibleAngle}deg)`;
-  }
-
-  let isJerseyImageLoading = false;
-
-  detailMedia.addEventListener('pointermove', rotateJerseyWithPointer);
-  detailMedia.addEventListener('pointerleave', () => {
-    detailImg.style.transition = 'transform 260ms cubic-bezier(0.22, 1, 0.36, 1)';
-    detailImg.style.transform = 'perspective(1000px) rotateY(0deg)';
-    window.setTimeout(() => {
-      detailImg.style.transition = '';
-      detailImg.style.transform = '';
-    }, 280);
   });
 
   closeDetailBtn.addEventListener('click', closeDetail);
