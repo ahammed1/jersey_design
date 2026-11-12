@@ -297,93 +297,51 @@
     renderCarousel();
   });
 
-  // Drag anywhere over the jersey image to rotate between front and back.
-  let dragPointerId = null;
-  let dragStartX = 0;
-  let dragDistance = 0;
-  let isTurning = false;
+  // Simple cursor-controlled jersey turn: move across the image to rotate.
+  let lastSide = showingBack ? 'back' : 'front';
 
-  detailMedia.addEventListener('pointerdown', (event) => {
-    if (!JERSEYS[activeIndex].backImage || isTurning) return;
-    dragPointerId = event.pointerId;
-    dragStartX = event.clientX;
-    dragDistance = 0;
-    detailMedia.setPointerCapture(event.pointerId);
-    detailMedia.classList.add('is-dragging');
-    detailImg.style.transition = 'none';
-  });
-
-  detailMedia.addEventListener('pointermove', (event) => {
-    if (dragPointerId !== event.pointerId || isTurning) return;
-    dragDistance = event.clientX - dragStartX;
-
-    // The image follows the pointer, giving a direct, controllable turn.
-    const angle = Math.max(-82, Math.min(82, dragDistance * 0.75));
-    detailImg.style.transform = `perspective(1100px) rotateY(${angle}deg)`;
-  });
-
-  async function finishJerseyDrag(event) {
-    if (dragPointerId !== event.pointerId) return;
-    dragPointerId = null;
-    detailMedia.classList.remove('is-dragging');
-
-    const shouldFlip = Math.abs(dragDistance) >= 42;
+  function rotateJerseyWithPointer(event) {
     const jersey = JERSEYS[activeIndex];
+    if (!jersey.backImage || !detailOpen) return;
 
-    if (!shouldFlip || !jersey.backImage) {
-      detailImg.style.transition = 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)';
-      detailImg.style.transform = 'perspective(1100px) rotateY(0deg)';
-      window.setTimeout(() => {
-        detailImg.style.transition = '';
-        detailImg.style.transform = '';
-      }, 240);
-      return;
+    const rect = detailMedia.getBoundingClientRect();
+    const pointerX = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    const angle = pointerX * 180;
+    const side = pointerX >= 0.5 ? 'back' : 'front';
+
+    if (side !== lastSide && !isJerseyImageLoading) {
+      const nextImage = side === 'back' ? jersey.backImage : jersey.image;
+      const preload = new Image();
+      isJerseyImageLoading = true;
+      preload.onload = () => {
+        showingBack = side === 'back';
+        lastSide = side;
+        detailImg.src = nextImage;
+        detailImg.classList.toggle('is-back', showingBack);
+        detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
+        isJerseyImageLoading = false;
+      };
+      preload.onerror = () => {
+        isJerseyImageLoading = false;
+      };
+      preload.src = nextImage;
     }
 
-    isTurning = true;
-    const nextShowingBack = !showingBack;
-    const nextImage = nextShowingBack ? jersey.backImage : jersey.image;
-    const preload = new Image();
-
-    try {
-      await new Promise((resolve, reject) => {
-        preload.onload = resolve;
-        preload.onerror = reject;
-        preload.src = nextImage;
-      });
-
-      const direction = dragDistance >= 0 ? 1 : -1;
-      await detailImg.animate(
-        [
-          { transform: `perspective(1100px) rotateY(${direction * 82}deg)`, opacity: 1 },
-          { transform: `perspective(1100px) rotateY(${direction * 90}deg)`, opacity: 0.12 }
-        ],
-        { duration: 130, easing: 'ease-in', fill: 'forwards' }
-      ).finished;
-
-      showingBack = nextShowingBack;
-      detailImg.src = nextImage;
-      detailImg.classList.toggle('is-back', showingBack);
-      detailImg.alt = `${jersey.name}${showingBack ? ' — back side' : ' — front side'}`;
-
-      await detailImg.animate(
-        [
-          { transform: `perspective(1100px) rotateY(${-direction * 90}deg)`, opacity: 0.12 },
-          { transform: 'perspective(1100px) rotateY(0deg)', opacity: 1 }
-        ],
-        { duration: 330, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' }
-      ).finished;
-    } catch (error) {
-      showToast('Unable to load this jersey image. Check the image file path.');
-    } finally {
-      detailImg.style.transition = '';
-      detailImg.style.transform = '';
-      isTurning = false;
-    }
+    const visibleAngle = side === 'back' ? angle - 180 : angle;
+    detailImg.style.transform = `perspective(1000px) rotateY(${visibleAngle}deg)`;
   }
 
-  detailMedia.addEventListener('pointerup', finishJerseyDrag);
-  detailMedia.addEventListener('pointercancel', finishJerseyDrag);
+  let isJerseyImageLoading = false;
+
+  detailMedia.addEventListener('pointermove', rotateJerseyWithPointer);
+  detailMedia.addEventListener('pointerleave', () => {
+    detailImg.style.transition = 'transform 260ms cubic-bezier(0.22, 1, 0.36, 1)';
+    detailImg.style.transform = 'perspective(1000px) rotateY(0deg)';
+    window.setTimeout(() => {
+      detailImg.style.transition = '';
+      detailImg.style.transform = '';
+    }, 280);
+  });
 
   closeDetailBtn.addEventListener('click', closeDetail);
   brandBtn.addEventListener('click', () => {
