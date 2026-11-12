@@ -188,6 +188,20 @@
       railItems.appendChild(btn);
     });
 
+    // Render detail clips
+    clipsGrid.innerHTML = '';
+    jersey.clips.forEach((clip) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'clip-card';
+      btn.innerHTML = `
+        <img src="${clip.image}" alt="${clip.title}" />
+        <span class="clip-label">${clip.title}</span>
+      `;
+      btn.addEventListener('click', () => openLightbox(clip, jersey));
+      clipsGrid.appendChild(btn);
+    });
+
     if (animateSwitch) {
       animateDetailContentSwitch();
     }
