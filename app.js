@@ -328,6 +328,7 @@
     }
 
     const visibleAngle = side === 'back' ? angle - 180 : angle;
+    detailImg.style.transition = 'transform 180ms ease-out';
     detailImg.style.transform = `perspective(1000px) rotateY(${visibleAngle}deg)`;
   }
 
