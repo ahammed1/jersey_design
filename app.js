@@ -271,18 +271,18 @@
             }
           ],
           {
-            duration: 680,
+            duration: 560,
             easing: EASE_OUT_EXPO,
             fill: 'both'
           }
         );
       }
 
-      // 3. Bring the description in from the right as the jersey settles on the left
+      // 3. Staggered slide-up entrance for text, clips, crest badge, Close button & left rail
       const staggeredItems = [
-        { el: detailTitle, delay: 180, y: 12, x: 64 },
-        { el: detailSubtitle, delay: 220, y: 10, x: 64 },
-        { el: detailDescription, delay: 260, y: 12, x: 64 },
+        { el: detailTitle, delay: 110, y: 18, x: 0 },
+        { el: detailSubtitle, delay: 150, y: 16, x: 0 },
+        { el: detailDescription, delay: 195, y: 18, x: 0 },
         { el: clipsSection, delay: 245, y: 20, x: 0 },
         { el: detailLogoWrap, delay: 220, y: -10, x: 0 },
         { el: detailTopBar, delay: 140, y: -8, x: 0 },
