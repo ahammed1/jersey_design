@@ -25,22 +25,20 @@ html, body {
 
 .stage {
   min-height: 100vh;
-  min-height: 100svh;
   display: flex;
-  align-items: stretch;
-  justify-content: stretch;
-  padding: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 20px;
 }
 
 .app-shell {
   position: relative;
   width: 100%;
-  max-width: none;
-  min-height: 100vh;
-  min-height: 100svh;
-  background: var(--bg-outer);
-  border-radius: 0;
-  box-shadow: none;
+  max-width: 1100px;
+  min-height: 620px;
+  background: var(--surface);
+  border-radius: var(--radius-shell);
+  box-shadow: 0 30px 75px rgba(15, 23, 42, 0.16), 0 4px 16px rgba(15, 23, 42, 0.05);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -900,7 +898,7 @@ html, body {
 
 @media (max-width: 600px) {
   .stage {
-    padding: 0;
+    padding: 12px;
   }
 
   .jersey-card {
