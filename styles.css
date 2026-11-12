@@ -626,9 +626,6 @@ html, body {
   justify-content: center;
   pointer-events: auto;
   touch-action: pan-y;
-  cursor: grab;
-  user-select: none;
-  -webkit-user-select: none;
   z-index: 5;
   transform-origin: center center;
   will-change: transform;
@@ -641,10 +638,6 @@ html, body {
   transform-style: preserve-3d;
   backface-visibility: hidden;
   filter: drop-shadow(0 28px 36px rgba(15, 23, 42, 0.36));
-}
-
-.detail-media.is-turning {
-  cursor: grabbing;
 }
 
 .detail-media img.is-back {
