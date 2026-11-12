@@ -3,14 +3,13 @@ const JERSEYS = [
     id: 'home',
     name: 'Home Jersey',
     club: 'Kerala Blasters FC',
-    season: '2024/25 Home Kit',
     badge: 'HOME KIT',
     gradient: 'linear-gradient(135deg, #b45309 0%, #d97706 48%, #fbbf24 100%)',
     detailGradient: 'linear-gradient(125deg, #92400e 0%, #d97706 52%, #f59e0b 100%)',
     accentShadow: 'rgba(217, 119, 6, 0.36)',
     image: 'assets/kbfc-home.png',
     description:
-      'The signature yellow Kerala Blasters FC Home Jersey features a subtle tonal chevron weave across the torso, deep navy shoulder panels, and a traditional braided pattern along the crew collar and sleeve cuffs. Finished with the club crest over the heart.',
+      'The Kerala Blasters FC Home Kit draws inspiration from Kerala’s coastal heritage of coir craftsmanship. Coir rope-inspired stripes bring a distinctive local identity to the classic design, while the navy collar and cuffs feature a subtle coir motif for a refined finish. A piece of Kerala, woven into every thread.',
     clips: [
       {
         title: 'Club Crest',
@@ -40,7 +39,7 @@ const JERSEYS = [
     accentShadow: 'rgba(37, 99, 235, 0.36)',
     image: 'assets/kbfc-away.png',
     description:
-      'The crisp white Kerala Blasters FC Away Jersey pairs a minimalist vertical micro-dot pattern with bold royal blue shoulder inserts and a striped ribbed collar. The monochrome elephant emblem sits cleanly on the chest for a sharp matchday look.',
+      'The Kerala Blasters FC Away Kit draws inspiration from Edavappathi, Kerala’s southwest monsoon, featuring a flowing rain-droplet pattern in layered shades of grey. Sky blue, navy, and white ombré accents on the collar and cuffs reflect the changing tones of a monsoon sky, capturing the season’s calm and atmospheric character.',
     clips: [
       {
         title: 'Elephant Emblem',
