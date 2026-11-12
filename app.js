@@ -235,19 +235,14 @@
       const sy = cardRect.height / panelRect.height;
 
       // 1. Expand colored panel from card bounds
+      // Keep the description panel in its final position; fade it in without sliding from the card.
       const panelAnim = detailPanel.animate(
         [
-          {
-            transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
-            borderRadius: '24px'
-          },
-          {
-            transform: 'translate(0px, 0px) scale(1, 1)',
-            borderRadius: '36px 0 0 0'
-          }
+          { opacity: 0.0 },
+          { opacity: 1.0 }
         ],
         {
-          duration: 620,
+          duration: 420,
           easing: EASE_OUT_EXPO,
           fill: 'both'
         }
