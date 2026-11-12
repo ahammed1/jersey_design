@@ -162,7 +162,7 @@
   function renderDetail(animateSwitch = false) {
     const jersey = JERSEYS[activeIndex];
     detailPanel.style.background = jersey.detailGradient;
-    detailBadge.textContent = jersey.badge;
+    detailBadge.textContent = '';
     detailLogoImg.src = jersey.clips[0].image;
     detailLogoImg.alt = `${jersey.name} crest`;
     detailImg.src = jersey.image;
