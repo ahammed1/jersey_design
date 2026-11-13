@@ -534,6 +534,11 @@
       );
     }
 
+    // Keep the real carousel card hidden while the closing clones are animating.
+    // This prevents the jersey image from flashing underneath the final image handoff.
+    transitionCard = sourceCard;
+    sourceCard.style.opacity = '0';
+
     isTransitioning = true;
     isClosingDetail = true;
 
