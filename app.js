@@ -370,11 +370,47 @@
     }
 
     detailOpen = false;
-    detailView.hidden = true;
     carouselView.hidden = false;
     carouselView.style.opacity = '';
     carouselView.style.pointerEvents = '';
     renderCarousel();
+
+    const targetCard = cardsTrack.querySelector(`[data-jersey-id="${JERSEYS[activeIndex].id}"]`);
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!targetCard || !detailPanel.animate || reducedMotion) {
+      detailView.hidden = true;
+      return;
+    }
+
+    const panelRect = detailPanel.getBoundingClientRect();
+    const cardRect = targetCard.getBoundingClientRect();
+    isTransitioning = true;
+
+    const closeAnimation = detailPanel.animate(
+      [
+        { transform: 'translate(0, 0) scale(1, 1)', borderRadius: '40px 0 0 0', opacity: 1 },
+        { transform: getPanelTransform(panelRect, cardRect), borderRadius: '24px', opacity: 0.25 }
+      ],
+      { duration: 620, easing: EASE_OUT_EXPO, fill: 'both' }
+    );
+
+    [detailRail, detailTopBar].forEach((element) => {
+      if (element && element.animate) {
+        element.animate(
+          [{ opacity: 1 }, { opacity: 0 }],
+          { duration: 260, easing: 'ease-out', fill: 'both' }
+        );
+      }
+    });
+
+    closeAnimation.onfinish = () => {
+      detailView.hidden = true;
+      detailPanel.style.transform = '';
+      detailPanel.style.opacity = '';
+      detailPanel.style.borderRadius = '';
+      isTransitioning = false;
+    };
   }
 
   function openLightbox(clip, jersey) {
