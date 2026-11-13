@@ -576,15 +576,27 @@ html, body {
   position: relative;
   flex: 1;
   border-top-left-radius: 40px;
-  padding: 52px 72px 48px 360px;
+  padding: 52px 72px 48px 340px;
   color: #ffffff;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  background: transparent;
   transform-origin: top left;
   transition: background 0.45s ease;
   overflow: visible;
   will-change: transform, border-radius;
+}
+
+.detail-panel::before {
+  content: '';
+  position: absolute;
+  inset: 16px 0 0;
+  z-index: 0;
+  border-top-left-radius: inherit;
+  background: var(--detail-panel-background);
+  clip-path: polygon(100px 0, 100% 0, 100% 100%, 100px 100%);
+  pointer-events: none;
 }
 
 /* Hero Jersey Image — extends prominently above the top edge of .detail-panel */
@@ -866,6 +878,11 @@ html, body {
     padding: 28px 24px;
     border-top-left-radius: 28px;
     border-top-right-radius: 28px;
+  }
+
+  .detail-panel::before {
+    inset: 0;
+    clip-path: none;
   }
 
   .detail-media {

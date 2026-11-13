@@ -3,6 +3,9 @@
   let searchQuery = '';
   let detailOpen = false;
   let isTransitioning = false;
+  let detailTransitionAnimations = [];
+  let transitionCard = null;
+  let transitionImageClone = null;
 
   const cardsTrack = document.getElementById('cardsTrack');
   const emptyState = document.getElementById('emptyState');
@@ -158,7 +161,7 @@
 
   function renderDetail(animateSwitch = false) {
     const jersey = JERSEYS[activeIndex];
-    detailPanel.style.background = jersey.detailGradient;
+    detailPanel.style.setProperty('--detail-panel-background', jersey.detailGradient);
     detailImg.src = jersey.image;
     detailBackImg.src = jersey.backImage || '';
     detailBackImg.alt = `${jersey.name} — back side`;
@@ -192,7 +195,158 @@
     }
   }
 
-  function openDetail(index) {
+  function clearDetailTransition() {
+    detailTransitionAnimations.forEach((animation) => animation.cancel());
+    detailTransitionAnimations = [];
+    if (transitionCard) transitionCard.style.opacity = '';
+    transitionCard = null;
+    if (transitionImageClone) transitionImageClone.remove();
+    transitionImageClone = null;
+    detailImg.style.visibility = '';
+    isTransitioning = false;
+  }
+
+  function animateTransitionElement(element, keyframes, options) {
+    if (!element || !element.animate) return null;
+    const animation = element.animate(keyframes, { ...options, fill: 'both' });
+    detailTransitionAnimations.push(animation);
+    return animation;
+  }
+
+  function getPanelTransform(fromRect, toRect) {
+    return `translate(${toRect.left - fromRect.left}px, ${toRect.top - fromRect.top}px) scale(${toRect.width / fromRect.width}, ${toRect.height / fromRect.height})`;
+  }
+
+  function animateDetailOpen(sourceCard) {
+    if (
+      !sourceCard ||
+      !detailPanel.animate ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
+
+    const sourceRect = sourceCard.getBoundingClientRect();
+    const panelRect = detailPanel.getBoundingClientRect();
+    const sourceImage = sourceCard.querySelector('.jersey-card-img-wrap img');
+    const jersey = JERSEYS[activeIndex];
+    transitionCard = sourceCard;
+    sourceCard.style.opacity = '0';
+    isTransitioning = true;
+
+    if (sourceImage) {
+      const sourceImageRect = sourceImage.getBoundingClientRect();
+      const detailImageRect = detailImg.getBoundingClientRect();
+      const imageStyle = window.getComputedStyle(sourceImage);
+      transitionImageClone = sourceImage.cloneNode();
+      transitionImageClone.alt = '';
+      Object.assign(transitionImageClone.style, {
+        position: 'fixed',
+        left: `${sourceImageRect.left}px`,
+        top: `${sourceImageRect.top}px`,
+        width: `${sourceImageRect.width}px`,
+        height: `${sourceImageRect.height}px`,
+        maxWidth: 'none',
+        maxHeight: 'none',
+        objectFit: 'contain',
+        filter: imageStyle.filter,
+        pointerEvents: 'none',
+        zIndex: '25',
+        willChange: 'left, top, width, height'
+      });
+      document.body.appendChild(transitionImageClone);
+      detailImg.style.visibility = 'hidden';
+      animateTransitionElement(
+        transitionImageClone,
+        [
+          {
+            left: `${sourceImageRect.left}px`,
+            top: `${sourceImageRect.top}px`,
+            width: `${sourceImageRect.width}px`,
+            height: `${sourceImageRect.height}px`
+          },
+          {
+            left: `${detailImageRect.left}px`,
+            top: `${detailImageRect.top}px`,
+            width: `${detailImageRect.width}px`,
+            height: `${detailImageRect.height}px`
+          }
+        ],
+        { duration: 820, easing: EASE_OUT_EXPO }
+      );
+    }
+
+    const panelAnimation = animateTransitionElement(
+      detailPanel,
+      [
+        {
+          transform: getPanelTransform(panelRect, sourceRect),
+          borderRadius: '24px'
+        },
+        {
+          transform: 'translate(0, 0) scale(1, 1)'
+        }
+      ],
+      { duration: 820, easing: EASE_OUT_EXPO }
+    );
+    animateTransitionElement(
+      detailPanel,
+      [
+        { background: sourceCard.style.background, borderRadius: '24px' },
+        { background: jersey.detailGradient, borderRadius: '40px 0 0 0' }
+      ],
+      { duration: 820, easing: EASE_OUT_EXPO, pseudoElement: '::before' }
+    );
+
+    if (!sourceImage) {
+      animateTransitionElement(
+        detailMedia,
+        [
+          { opacity: 0, transform: 'translateY(18px) scale(0.94)' },
+          { opacity: 1, transform: 'translateY(0) scale(1)' }
+        ],
+        { duration: 520, delay: 160, easing: EASE_OUT_EXPO }
+      );
+    }
+    animateTransitionElement(
+      detailView.querySelector('.detail-content'),
+      [
+        { opacity: 0, transform: 'translateX(24px)' },
+        { opacity: 1, transform: 'translateX(0)' }
+      ],
+      { duration: 500, delay: 300, easing: EASE_OUT_EXPO }
+    );
+    animateTransitionElement(
+      detailBackMedia,
+      [
+        { opacity: 0, transform: 'translateY(24px)' },
+        { opacity: 1, transform: 'translateY(0)' }
+      ],
+      { duration: 500, delay: 340, easing: EASE_OUT_EXPO }
+    );
+    animateTransitionElement(
+      detailRail,
+      [{ opacity: 0 }, { opacity: 1 }],
+      { duration: 460, delay: 280, easing: EASE_OUT_EXPO }
+    );
+    animateTransitionElement(
+      detailTopBar,
+      [{ opacity: 0 }, { opacity: 1 }],
+      { duration: 400, delay: 300, easing: EASE_OUT_EXPO }
+    );
+    if (panelAnimation) {
+      panelAnimation.onfinish = () => {
+        clearDetailTransition();
+        if (detailOpen) {
+          carouselView.style.opacity = '';
+        }
+      };
+    } else {
+      clearDetailTransition();
+    }
+  }
+
+  function openDetail(index, sourceCard = null) {
     if (isTransitioning) return;
 
     activeIndex = index;
@@ -200,16 +354,20 @@
     detailImg.style.transform = '';
     detailOpen = true;
 
-    carouselView.hidden = true;
     carouselView.style.opacity = '';
     carouselView.style.pointerEvents = '';
 
     detailView.hidden = false;
     renderDetail(false);
+    animateDetailOpen(sourceCard);
   }
 
   function closeDetail() {
-    if (!detailOpen || isTransitioning) return;
+    if (!detailOpen) return;
+
+    if (isTransitioning) {
+      clearDetailTransition();
+    }
 
     detailOpen = false;
     detailView.hidden = true;
