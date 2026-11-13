@@ -7,11 +7,7 @@
   let isTransitioning = false;
   let detailTransitionAnimations = [];
   let transitionCard = null;
-  let detailSourceCard = null;
   let transitionImageClone = null;
-  let transitionImageTargetClone = null;
-  let transitionPanelClone = null;
-  let isClosingDetail = false;
 
   const cardsTrack = document.getElementById('cardsTrack');
   const emptyState = document.getElementById('emptyState');
@@ -185,9 +181,6 @@
 
   function renderDetailContent(jersey, jerseyIndex, animateSwitch) {
     renderedDetailIndex = jerseyIndex;
-    detailSourceCard =
-      cardsTrack.querySelector(`.jersey-card[data-jersey-id="${jersey.id}"]`) ||
-      detailSourceCard;
     detailPanel.style.setProperty('--detail-panel-background', jersey.detailGradient);
     detailImg.src = jersey.image;
     detailBackImg.src = jersey.backImage || '';
@@ -229,10 +222,6 @@
     transitionCard = null;
     if (transitionImageClone) transitionImageClone.remove();
     transitionImageClone = null;
-    if (transitionImageTargetClone) transitionImageTargetClone.remove();
-    transitionImageTargetClone = null;
-    if (transitionPanelClone) transitionPanelClone.remove();
-    transitionPanelClone = null;
     detailImg.style.visibility = '';
     isTransitioning = false;
   }
@@ -381,7 +370,6 @@
     if (isTransitioning) return;
 
     activeIndex = index;
-    detailSourceCard = sourceCard;
     lastSide = 'front';
     detailImg.style.transform = '';
     detailOpen = true;
@@ -394,208 +382,20 @@
     animateDetailOpen(sourceCard);
   }
 
-  function finishDetailClose() {
-    detailOpen = false;
-    isClosingDetail = false;
-    detailView.hidden = true;
-    carouselView.hidden = false;
-    carouselView.style.opacity = '';
-    carouselView.style.pointerEvents = '';
-    detailSourceCard = null;
-    cardsTrack.querySelectorAll('.jersey-card').forEach((card) => {
-      card.classList.toggle(
-        'is-active',
-        card.dataset.jerseyId === JERSEYS[activeIndex].id
-      );
-    });
-  }
-
-  function animateDetailClose() {
-    const sourceCard = detailSourceCard;
-    if (
-      !sourceCard ||
-      !sourceCard.isConnected ||
-      !detailPanel.animate ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
-      return false;
-    }
-
-    const sourceRect = sourceCard.getBoundingClientRect();
-    const panelRect = detailPanel.getBoundingClientRect();
-    const sourceImage = sourceCard.querySelector('.jersey-card-img-wrap img');
-    const sourceImageRect = sourceImage && sourceImage.getBoundingClientRect();
-    const detailImageRect = detailImg.getBoundingClientRect();
-    const panelStyle = window.getComputedStyle(detailPanel);
-    const panelBackgroundStyle = window.getComputedStyle(detailPanel, '::before');
-    transitionPanelClone = detailPanel.cloneNode(true);
-    const panelImageClone = transitionPanelClone.querySelector('#detailImg');
-    if (sourceImage && panelImageClone) {
-      panelImageClone.style.visibility = 'hidden';
-    }
-    transitionPanelClone.removeAttribute('id');
-    transitionPanelClone.querySelectorAll('[id]').forEach((element) => {
-      element.removeAttribute('id');
-    });
-    transitionPanelClone.setAttribute('aria-hidden', 'true');
-    Object.assign(transitionPanelClone.style, {
-      position: 'fixed',
-      left: `${panelRect.left}px`,
-      top: `${panelRect.top}px`,
-      width: `${panelRect.width}px`,
-      height: `${panelRect.height}px`,
-      margin: '0',
-      flex: 'none',
-      transform: 'none',
-      transformOrigin: 'top left',
-      transition: 'none',
-      pointerEvents: 'none',
-      zIndex: '25',
-      willChange: 'transform, border-radius'
-    });
-    transitionPanelClone.style.setProperty(
-      '--detail-panel-background',
-      panelStyle.getPropertyValue('--detail-panel-background')
-    );
-    document.body.appendChild(transitionPanelClone);
-
-    if (sourceImage && sourceImageRect) {
-      const imageStyle = window.getComputedStyle(detailImg);
-      const sourceImageStyle = window.getComputedStyle(sourceImage);
-      transitionImageClone = detailImg.cloneNode();
-      transitionImageClone.removeAttribute('id');
-      transitionImageClone.alt = '';
-      Object.assign(transitionImageClone.style, {
-        position: 'fixed',
-        left: `${detailImageRect.left}px`,
-        top: `${detailImageRect.top}px`,
-        width: `${detailImageRect.width}px`,
-        height: `${detailImageRect.height}px`,
-        maxWidth: 'none',
-        maxHeight: 'none',
-        objectFit: 'contain',
-        filter: imageStyle.filter,
-        pointerEvents: 'none',
-        zIndex: '26',
-        willChange: 'left, top, width, height'
-      });
-      document.body.appendChild(transitionImageClone);
-      animateTransitionElement(
-        transitionImageClone,
-        [
-          {
-            left: `${detailImageRect.left}px`,
-            top: `${detailImageRect.top}px`,
-            width: `${detailImageRect.width}px`,
-            height: `${detailImageRect.height}px`
-          },
-          {
-            left: `${sourceImageRect.left}px`,
-            top: `${sourceImageRect.top}px`,
-            width: `${sourceImageRect.width}px`,
-            height: `${sourceImageRect.height}px`
-          }
-        ],
-        { duration: 740, easing: EASE_OUT_EXPO }
-      );
-
-      transitionImageTargetClone = sourceImage.cloneNode();
-      transitionImageTargetClone.removeAttribute('id');
-      transitionImageTargetClone.alt = '';
-      Object.assign(transitionImageTargetClone.style, {
-        position: 'fixed',
-        left: `${sourceImageRect.left}px`,
-        top: `${sourceImageRect.top}px`,
-        width: `${sourceImageRect.width}px`,
-        height: `${sourceImageRect.height}px`,
-        maxWidth: 'none',
-        maxHeight: 'none',
-        objectFit: 'contain',
-        filter: sourceImageStyle.filter,
-        opacity: '0',
-        pointerEvents: 'none',
-        zIndex: '27'
-      });
-      document.body.appendChild(transitionImageTargetClone);
-      const imageHandoffOptions = {
-        duration: 140,
-        delay: 600,
-        easing: EASE_OUT_EXPO
-      };
-      animateTransitionElement(
-        transitionImageClone,
-        [{ opacity: 1 }, { opacity: 0 }],
-        imageHandoffOptions
-      );
-      animateTransitionElement(
-        transitionImageTargetClone,
-        [{ opacity: 0 }, { opacity: 1 }],
-        imageHandoffOptions
-      );
-    }
-
-    // Keep the real carousel card hidden while the closing clones are animating.
-    // This prevents the jersey image from flashing underneath the final image handoff.
-    transitionCard = sourceCard;
-    sourceCard.style.opacity = '0';
-
-    isTransitioning = true;
-    isClosingDetail = true;
-
-    detailView.hidden = true;
-    carouselView.hidden = false;
-    carouselView.style.opacity = '';
-    carouselView.style.pointerEvents = 'none';
-    const panelAnimation = animateTransitionElement(
-      transitionPanelClone,
-      [
-        { transform: 'translate(0, 0) scale(1, 1)', borderRadius: '40px 0 0 0' },
-        {
-          transform: getPanelTransform(panelRect, sourceRect),
-          borderRadius: '24px'
-        }
-      ],
-      { duration: 740, easing: EASE_OUT_EXPO }
-    );
-    animateTransitionElement(
-      transitionPanelClone,
-      [
-        {
-          background: panelBackgroundStyle.background,
-          borderRadius: panelBackgroundStyle.borderRadius,
-          clipPath: panelBackgroundStyle.clipPath
-        },
-        {
-          background: sourceCard.style.background,
-          borderRadius: '24px',
-          clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
-        }
-      ],
-      { duration: 740, easing: EASE_OUT_EXPO, pseudoElement: '::before' }
-    );
-    if (!panelAnimation) {
-      clearDetailTransition();
-      return false;
-    }
-
-    panelAnimation.onfinish = () => {
-      clearDetailTransition();
-      finishDetailClose();
-    };
-    return true;
-  }
-
   function closeDetail() {
-    if (!detailOpen || isClosingDetail) return;
+    if (!detailOpen) return;
 
     detailRenderToken += 1;
     if (isTransitioning) {
       clearDetailTransition();
     }
 
-    if (!animateDetailClose()) {
-      finishDetailClose();
-    }
+    detailOpen = false;
+    detailView.hidden = true;
+    carouselView.hidden = false;
+    carouselView.style.opacity = '';
+    carouselView.style.pointerEvents = '';
+    renderCarousel();
   }
 
   function openLightbox(clip, jersey) {
