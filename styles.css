@@ -418,7 +418,7 @@ html, body {
 .app-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding-top: 12px;
 }
 
