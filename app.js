@@ -356,6 +356,7 @@
 
     carouselView.style.opacity = '';
     carouselView.style.pointerEvents = '';
+    carouselView.style.visibility = 'hidden';
 
     detailView.hidden = false;
     renderDetail(false);
@@ -371,6 +372,7 @@
 
     detailOpen = false;
     carouselView.hidden = false;
+    carouselView.style.visibility = '';
     carouselView.style.opacity = '';
     carouselView.style.pointerEvents = '';
     renderCarousel();
@@ -463,6 +465,7 @@
       detailOpen = false;
       detailView.hidden = true;
       carouselView.hidden = false;
+      carouselView.style.visibility = '';
     }
     renderCarousel();
   });
