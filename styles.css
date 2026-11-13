@@ -488,7 +488,7 @@ html, body {
   z-index: 15;
   display: flex;
   min-height: 0;
-  background: transparent;
+  background: #ffffff;
   overflow: visible;
 }
 
