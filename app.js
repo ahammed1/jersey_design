@@ -1,11 +1,15 @@
 (function () {
   let activeIndex = 0;
+  let detailRenderToken = 0;
+  let renderedDetailIndex = 0;
   let searchQuery = '';
   let detailOpen = false;
   let isTransitioning = false;
   let detailTransitionAnimations = [];
   let transitionCard = null;
+  let detailSourceCard = null;
   let transitionImageClone = null;
+  let isClosingDetail = false;
 
   const cardsTrack = document.getElementById('cardsTrack');
   const emptyState = document.getElementById('emptyState');
@@ -143,24 +147,45 @@
         }
       );
     });
-
-    if (detailMedia && detailMedia.animate) {
-      detailMedia.animate(
-        [
-          { opacity: 0.4, transform: 'translateY(16px) scale(0.95)' },
-          { opacity: 1, transform: 'translateY(0) scale(1)' }
-        ],
-        {
-          duration: 420,
-          easing: EASE_OUT_EXPO,
-          fill: 'both'
-        }
-      );
-    }
   }
 
   function renderDetail(animateSwitch = false) {
     const jersey = JERSEYS[activeIndex];
+    if (animateSwitch) {
+      const requestToken = ++detailRenderToken;
+      const nextIndex = activeIndex;
+      const previousIndex = renderedDetailIndex;
+      const imageSources = [jersey.image, jersey.backImage].filter(Boolean);
+
+      Promise.all(
+        imageSources.map((source) => {
+          const image = new Image();
+          image.src = source;
+          return image.decode();
+        })
+      )
+        .then(() => {
+          if (requestToken !== detailRenderToken || !detailOpen) return;
+          renderDetailContent(jersey, nextIndex, true);
+        })
+        .catch((error) => {
+          if (requestToken !== detailRenderToken || !detailOpen) return;
+          activeIndex = previousIndex;
+          console.error(`Unable to load images for ${jersey.name}`, error);
+          showToast(`Could not load ${jersey.name}.`);
+        });
+      return;
+    }
+
+    detailRenderToken += 1;
+    renderDetailContent(jersey, activeIndex, false);
+  }
+
+  function renderDetailContent(jersey, jerseyIndex, animateSwitch) {
+    renderedDetailIndex = jerseyIndex;
+    detailSourceCard =
+      cardsTrack.querySelector(`.jersey-card[data-jersey-id="${jersey.id}"]`) ||
+      detailSourceCard;
     detailPanel.style.setProperty('--detail-panel-background', jersey.detailGradient);
     detailImg.src = jersey.image;
     detailBackImg.src = jersey.backImage || '';
@@ -178,7 +203,7 @@
     JERSEYS.forEach((item, idx) => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'rail-item' + (idx === activeIndex ? ' is-active' : '');
+      btn.className = 'rail-item' + (idx === jerseyIndex ? ' is-active' : '');
       btn.textContent = item.name;
       btn.addEventListener('click', () => {
         if (idx === activeIndex) return;
@@ -272,7 +297,7 @@
             height: `${detailImageRect.height}px`
           }
         ],
-        { duration: 820, easing: EASE_OUT_EXPO }
+        { duration: 740, easing: EASE_OUT_EXPO }
       );
     }
 
@@ -287,7 +312,7 @@
           transform: 'translate(0, 0) scale(1, 1)'
         }
       ],
-      { duration: 820, easing: EASE_OUT_EXPO }
+      { duration: 740, easing: EASE_OUT_EXPO }
     );
     animateTransitionElement(
       detailPanel,
@@ -295,7 +320,7 @@
         { background: sourceCard.style.background, borderRadius: '24px' },
         { background: jersey.detailGradient, borderRadius: '40px 0 0 0' }
       ],
-      { duration: 820, easing: EASE_OUT_EXPO, pseudoElement: '::before' }
+      { duration: 740, easing: EASE_OUT_EXPO, pseudoElement: '::before' }
     );
 
     if (!sourceImage) {
@@ -305,7 +330,7 @@
           { opacity: 0, transform: 'translateY(18px) scale(0.94)' },
           { opacity: 1, transform: 'translateY(0) scale(1)' }
         ],
-        { duration: 520, delay: 160, easing: EASE_OUT_EXPO }
+        { duration: 440, delay: 120, easing: EASE_OUT_EXPO }
       );
     }
     animateTransitionElement(
@@ -314,7 +339,7 @@
         { opacity: 0, transform: 'translateX(24px)' },
         { opacity: 1, transform: 'translateX(0)' }
       ],
-      { duration: 500, delay: 300, easing: EASE_OUT_EXPO }
+      { duration: 400, delay: 220, easing: EASE_OUT_EXPO }
     );
     animateTransitionElement(
       detailBackMedia,
@@ -322,17 +347,17 @@
         { opacity: 0, transform: 'translateY(24px)' },
         { opacity: 1, transform: 'translateY(0)' }
       ],
-      { duration: 500, delay: 340, easing: EASE_OUT_EXPO }
+      { duration: 400, delay: 240, easing: EASE_OUT_EXPO }
     );
     animateTransitionElement(
       detailRail,
       [{ opacity: 0 }, { opacity: 1 }],
-      { duration: 460, delay: 280, easing: EASE_OUT_EXPO }
+      { duration: 360, delay: 180, easing: EASE_OUT_EXPO }
     );
     animateTransitionElement(
       detailTopBar,
       [{ opacity: 0 }, { opacity: 1 }],
-      { duration: 400, delay: 300, easing: EASE_OUT_EXPO }
+      { duration: 340, delay: 200, easing: EASE_OUT_EXPO }
     );
     if (panelAnimation) {
       panelAnimation.onfinish = () => {
@@ -350,6 +375,7 @@
     if (isTransitioning) return;
 
     activeIndex = index;
+    detailSourceCard = sourceCard;
     lastSide = 'front';
     detailImg.style.transform = '';
     detailOpen = true;
@@ -362,19 +388,153 @@
     animateDetailOpen(sourceCard);
   }
 
-  function closeDetail() {
-    if (!detailOpen) return;
-
-    if (isTransitioning) {
-      clearDetailTransition();
-    }
-
+  function finishDetailClose() {
     detailOpen = false;
+    isClosingDetail = false;
     detailView.hidden = true;
     carouselView.hidden = false;
     carouselView.style.opacity = '';
     carouselView.style.pointerEvents = '';
+    detailSourceCard = null;
     renderCarousel();
+  }
+
+  function animateDetailClose() {
+    const sourceCard = detailSourceCard;
+    if (
+      !sourceCard ||
+      !sourceCard.isConnected ||
+      !detailPanel.animate ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return false;
+    }
+
+    const sourceRect = sourceCard.getBoundingClientRect();
+    const panelRect = detailPanel.getBoundingClientRect();
+    const sourceImage = sourceCard.querySelector('.jersey-card-img-wrap img');
+    transitionCard = sourceCard;
+    sourceCard.style.opacity = '0';
+    isTransitioning = true;
+    isClosingDetail = true;
+
+    if (sourceImage) {
+      const sourceImageRect = sourceImage.getBoundingClientRect();
+      const detailImageRect = detailImg.getBoundingClientRect();
+      const imageStyle = window.getComputedStyle(detailImg);
+      transitionImageClone = detailImg.cloneNode();
+      transitionImageClone.removeAttribute('id');
+      transitionImageClone.alt = '';
+      Object.assign(transitionImageClone.style, {
+        position: 'fixed',
+        left: `${detailImageRect.left}px`,
+        top: `${detailImageRect.top}px`,
+        width: `${detailImageRect.width}px`,
+        height: `${detailImageRect.height}px`,
+        maxWidth: 'none',
+        maxHeight: 'none',
+        objectFit: 'contain',
+        filter: imageStyle.filter,
+        pointerEvents: 'none',
+        zIndex: '25',
+        willChange: 'left, top, width, height'
+      });
+      document.body.appendChild(transitionImageClone);
+      detailImg.style.visibility = 'hidden';
+      animateTransitionElement(
+        transitionImageClone,
+        [
+          {
+            left: `${detailImageRect.left}px`,
+            top: `${detailImageRect.top}px`,
+            width: `${detailImageRect.width}px`,
+            height: `${detailImageRect.height}px`
+          },
+          {
+            left: `${sourceImageRect.left}px`,
+            top: `${sourceImageRect.top}px`,
+            width: `${sourceImageRect.width}px`,
+            height: `${sourceImageRect.height}px`
+          }
+        ],
+        { duration: 740, easing: EASE_OUT_EXPO }
+      );
+    }
+
+    const panelAnimation = animateTransitionElement(
+      detailPanel,
+      [
+        { transform: 'translate(0, 0) scale(1, 1)', borderRadius: '40px 0 0 0' },
+        {
+          transform: getPanelTransform(panelRect, sourceRect),
+          borderRadius: '24px'
+        }
+      ],
+      { duration: 740, easing: EASE_OUT_EXPO }
+    );
+    animateTransitionElement(
+      detailPanel,
+      [
+        {
+          background: JERSEYS[activeIndex].detailGradient,
+          borderRadius: '40px 0 0 0',
+          clipPath: 'polygon(100px 0, 100% 0, 100% 100%, 100px 100%)'
+        },
+        {
+          background: sourceCard.style.background,
+          borderRadius: '24px',
+          clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
+        }
+      ],
+      { duration: 740, easing: EASE_OUT_EXPO, pseudoElement: '::before' }
+    );
+    animateTransitionElement(
+      detailView.querySelector('.detail-content'),
+      [
+        { opacity: 1, transform: 'translateX(0)' },
+        { opacity: 0, transform: 'translateX(24px)' }
+      ],
+      { duration: 280, easing: EASE_OUT_EXPO }
+    );
+    animateTransitionElement(
+      detailBackMedia,
+      [{ opacity: 1 }, { opacity: 0 }],
+      { duration: 260, easing: EASE_OUT_EXPO }
+    );
+    animateTransitionElement(
+      detailRail,
+      [{ opacity: 1 }, { opacity: 0 }],
+      { duration: 240, easing: EASE_OUT_EXPO }
+    );
+    animateTransitionElement(
+      detailTopBar,
+      [{ opacity: 1 }, { opacity: 0 }],
+      { duration: 240, easing: EASE_OUT_EXPO }
+    );
+
+    if (!panelAnimation) {
+      clearDetailTransition();
+      return false;
+    }
+
+    panelAnimation.onfinish = () => {
+      clearDetailTransition();
+      finishDetailClose();
+    };
+    return true;
+  }
+
+  function closeDetail() {
+    if (!detailOpen || isClosingDetail) return;
+
+    detailRenderToken += 1;
+    if (isTransitioning) {
+      clearDetailTransition();
+    }
+
+    if (!animateDetailClose()) {
+      finishDetailClose();
+    }
   }
 
   function openLightbox(clip, jersey) {
