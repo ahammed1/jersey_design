@@ -653,8 +653,8 @@ html, body {
 }
 
 .detail-back-media img {
-  width: 175%;
-  height: 175%;
+  width: 185%;
+  height: 185%;
   max-width: none;
   max-height: none;
   object-fit: contain;
