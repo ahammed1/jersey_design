@@ -9,6 +9,8 @@
   let transitionCard = null;
   let detailSourceCard = null;
   let transitionImageClone = null;
+  let transitionImageTargetClone = null;
+  let transitionPanelClone = null;
   let isClosingDetail = false;
 
   const cardsTrack = document.getElementById('cardsTrack');
@@ -227,6 +229,10 @@
     transitionCard = null;
     if (transitionImageClone) transitionImageClone.remove();
     transitionImageClone = null;
+    if (transitionImageTargetClone) transitionImageTargetClone.remove();
+    transitionImageTargetClone = null;
+    if (transitionPanelClone) transitionPanelClone.remove();
+    transitionPanelClone = null;
     detailImg.style.visibility = '';
     isTransitioning = false;
   }
@@ -396,7 +402,12 @@
     carouselView.style.opacity = '';
     carouselView.style.pointerEvents = '';
     detailSourceCard = null;
-    renderCarousel();
+    cardsTrack.querySelectorAll('.jersey-card').forEach((card) => {
+      card.classList.toggle(
+        'is-active',
+        card.dataset.jerseyId === JERSEYS[activeIndex].id
+      );
+    });
   }
 
   function animateDetailClose() {
@@ -413,15 +424,44 @@
     const sourceRect = sourceCard.getBoundingClientRect();
     const panelRect = detailPanel.getBoundingClientRect();
     const sourceImage = sourceCard.querySelector('.jersey-card-img-wrap img');
-    transitionCard = sourceCard;
-    sourceCard.style.opacity = '0';
-    isTransitioning = true;
-    isClosingDetail = true;
+    const sourceImageRect = sourceImage && sourceImage.getBoundingClientRect();
+    const detailImageRect = detailImg.getBoundingClientRect();
+    const panelStyle = window.getComputedStyle(detailPanel);
+    const panelBackgroundStyle = window.getComputedStyle(detailPanel, '::before');
+    transitionPanelClone = detailPanel.cloneNode(true);
+    const panelImageClone = transitionPanelClone.querySelector('#detailImg');
+    if (sourceImage && panelImageClone) {
+      panelImageClone.style.visibility = 'hidden';
+    }
+    transitionPanelClone.removeAttribute('id');
+    transitionPanelClone.querySelectorAll('[id]').forEach((element) => {
+      element.removeAttribute('id');
+    });
+    transitionPanelClone.setAttribute('aria-hidden', 'true');
+    Object.assign(transitionPanelClone.style, {
+      position: 'fixed',
+      left: `${panelRect.left}px`,
+      top: `${panelRect.top}px`,
+      width: `${panelRect.width}px`,
+      height: `${panelRect.height}px`,
+      margin: '0',
+      flex: 'none',
+      transform: 'none',
+      transformOrigin: 'top left',
+      transition: 'none',
+      pointerEvents: 'none',
+      zIndex: '25',
+      willChange: 'transform, border-radius'
+    });
+    transitionPanelClone.style.setProperty(
+      '--detail-panel-background',
+      panelStyle.getPropertyValue('--detail-panel-background')
+    );
+    document.body.appendChild(transitionPanelClone);
 
-    if (sourceImage) {
-      const sourceImageRect = sourceImage.getBoundingClientRect();
-      const detailImageRect = detailImg.getBoundingClientRect();
+    if (sourceImage && sourceImageRect) {
       const imageStyle = window.getComputedStyle(detailImg);
+      const sourceImageStyle = window.getComputedStyle(sourceImage);
       transitionImageClone = detailImg.cloneNode();
       transitionImageClone.removeAttribute('id');
       transitionImageClone.alt = '';
@@ -436,11 +476,10 @@
         objectFit: 'contain',
         filter: imageStyle.filter,
         pointerEvents: 'none',
-        zIndex: '25',
+        zIndex: '26',
         willChange: 'left, top, width, height'
       });
       document.body.appendChild(transitionImageClone);
-      detailImg.style.visibility = 'hidden';
       animateTransitionElement(
         transitionImageClone,
         [
@@ -459,10 +498,51 @@
         ],
         { duration: 740, easing: EASE_OUT_EXPO }
       );
+
+      transitionImageTargetClone = sourceImage.cloneNode();
+      transitionImageTargetClone.removeAttribute('id');
+      transitionImageTargetClone.alt = '';
+      Object.assign(transitionImageTargetClone.style, {
+        position: 'fixed',
+        left: `${sourceImageRect.left}px`,
+        top: `${sourceImageRect.top}px`,
+        width: `${sourceImageRect.width}px`,
+        height: `${sourceImageRect.height}px`,
+        maxWidth: 'none',
+        maxHeight: 'none',
+        objectFit: 'contain',
+        filter: sourceImageStyle.filter,
+        opacity: '0',
+        pointerEvents: 'none',
+        zIndex: '27'
+      });
+      document.body.appendChild(transitionImageTargetClone);
+      const imageHandoffOptions = {
+        duration: 140,
+        delay: 600,
+        easing: EASE_OUT_EXPO
+      };
+      animateTransitionElement(
+        transitionImageClone,
+        [{ opacity: 1 }, { opacity: 0 }],
+        imageHandoffOptions
+      );
+      animateTransitionElement(
+        transitionImageTargetClone,
+        [{ opacity: 0 }, { opacity: 1 }],
+        imageHandoffOptions
+      );
     }
 
+    isTransitioning = true;
+    isClosingDetail = true;
+
+    detailView.hidden = true;
+    carouselView.hidden = false;
+    carouselView.style.opacity = '';
+    carouselView.style.pointerEvents = 'none';
     const panelAnimation = animateTransitionElement(
-      detailPanel,
+      transitionPanelClone,
       [
         { transform: 'translate(0, 0) scale(1, 1)', borderRadius: '40px 0 0 0' },
         {
@@ -473,12 +553,12 @@
       { duration: 740, easing: EASE_OUT_EXPO }
     );
     animateTransitionElement(
-      detailPanel,
+      transitionPanelClone,
       [
         {
-          background: JERSEYS[activeIndex].detailGradient,
-          borderRadius: '40px 0 0 0',
-          clipPath: 'polygon(100px 0, 100% 0, 100% 100%, 100px 100%)'
+          background: panelBackgroundStyle.background,
+          borderRadius: panelBackgroundStyle.borderRadius,
+          clipPath: panelBackgroundStyle.clipPath
         },
         {
           background: sourceCard.style.background,
@@ -488,30 +568,6 @@
       ],
       { duration: 740, easing: EASE_OUT_EXPO, pseudoElement: '::before' }
     );
-    animateTransitionElement(
-      detailView.querySelector('.detail-content'),
-      [
-        { opacity: 1, transform: 'translateX(0)' },
-        { opacity: 0, transform: 'translateX(24px)' }
-      ],
-      { duration: 280, easing: EASE_OUT_EXPO }
-    );
-    animateTransitionElement(
-      detailBackMedia,
-      [{ opacity: 1 }, { opacity: 0 }],
-      { duration: 260, easing: EASE_OUT_EXPO }
-    );
-    animateTransitionElement(
-      detailRail,
-      [{ opacity: 1 }, { opacity: 0 }],
-      { duration: 240, easing: EASE_OUT_EXPO }
-    );
-    animateTransitionElement(
-      detailTopBar,
-      [{ opacity: 1 }, { opacity: 0 }],
-      { duration: 240, easing: EASE_OUT_EXPO }
-    );
-
     if (!panelAnimation) {
       clearDetailTransition();
       return false;
